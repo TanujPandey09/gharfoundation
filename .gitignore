@@ -112,3 +112,12 @@ scratch/
 *.db-wal
 .eslintcache
 .stylelintcache
+
+# Agent & AI Skills / Tooling
+.agent/
+.agents/
+skills-lock.json
+
+# Design System Specs & Internal Docs
+design-system/
+documentation/
