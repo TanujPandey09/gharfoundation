@@ -350,7 +350,7 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
   return (
     <>
       {/* 1. Mobile Details View (< lg) */}
-      <div className="lg:hidden pb-24 bg-white dark:bg-[#14100D] min-h-screen text-[#0A0A0A] dark:text-gray-100 transition-colors duration-200 relative">
+      <div className="lg:hidden pb-24 bg-white min-h-screen text-[#0A0A0A] transition-colors duration-200 relative">
         {/* Top Image Slider & Navigation overlay */}
         <div className="relative w-full aspect-[4/5] sm:aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-900">
           {property.images && property.images.length > 0 ? (
@@ -669,7 +669,7 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
       </div>
 
       {/* 2. Desktop Details View (>= lg) */}
-      <div className="hidden lg:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 md:px-8 py-6 space-y-8 bg-background dark:bg-darkBackground transition-colors">
+      <div className="hidden lg:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 md:px-8 py-6 space-y-8 bg-white transition-colors">
         {/* Back Button & Title Panel */}
         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
           <div className="space-y-2">

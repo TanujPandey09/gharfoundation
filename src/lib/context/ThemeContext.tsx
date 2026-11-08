@@ -18,15 +18,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Read theme preference from localStorage or default to system preference
+    // Read theme preference from localStorage or default strictly to light theme
     const storedTheme = localStorage.getItem("ghar_theme") as ThemeMode | null;
-    if (storedTheme) {
-      setMode(storedTheme);
-      document.documentElement.classList.toggle("dark", storedTheme === "dark");
+    if (storedTheme === "dark") {
+      setMode("dark");
+      document.documentElement.classList.add("dark");
     } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setMode(prefersDark ? "dark" : "light");
-      document.documentElement.classList.toggle("dark", prefersDark);
+      setMode("light");
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("ghar_theme", "light");
     }
     setMounted(true);
   }, []);

@@ -713,10 +713,10 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
   const currentLeft = LEFT_CONTENT[step === "otp" ? "otp" : "phone"];
 
   return (
-    <div className="bg-white dark:bg-slate-950 min-h-screen lg:h-screen lg:overflow-hidden flex flex-col lg:flex-row transition-colors">
+    <div className="bg-white min-h-screen lg:h-screen lg:overflow-hidden flex flex-col lg:flex-row transition-colors">
 
       {/* ─── LEFT COLUMN: Luxury Building & Glassmorphism Panels (Desktop Only) ─── */}
-      <div className="hidden lg:block lg:w-1/2 lg:h-screen relative overflow-hidden bg-slate-950">
+      <div className="hidden lg:block lg:w-1/2 lg:h-screen relative overflow-hidden bg-slate-900">
         <AnimatePresence mode="wait">
           <motion.img
             key={currentLeft.image}
@@ -730,7 +730,7 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
           />
         </AnimatePresence>
         {/* Emerald/slate gradient overlay to match image */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-rausch/20 z-10 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/40 to-rausch/20 z-10 mix-blend-multiply" />
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay z-10"></div>
 
         {/* Logo at Top Left */}
@@ -786,21 +786,21 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
       </div>
 
       {/* ─── RIGHT COLUMN: Custom Auth Form ─── */}
-      <div className="w-full lg:w-1/2 min-h-screen lg:h-screen flex flex-col justify-start lg:justify-center bg-slate-50 dark:bg-slate-950 overflow-y-auto">
+      <div className="w-full lg:w-1/2 min-h-screen lg:h-screen flex flex-col justify-start lg:justify-center bg-white overflow-y-auto">
 
         {/* Mobile Header */}
-        <div className="flex lg:hidden justify-between items-center px-6 py-4 bg-white dark:bg-slate-950 border-b border-gray-100 dark:border-slate-800/40 relative z-20">
-          <div className="flex items-center space-x-2 text-slate-900 dark:text-white">
+        <div className="flex lg:hidden justify-between items-center px-6 py-4 bg-white border-b border-gray-150 relative z-20">
+          <div className="flex items-center space-x-2 text-slate-900">
             <Icon name="business" className="text-rausch" size={20} />
             <span className="font-display font-bold text-lg tracking-tight">Ghar Foundation</span>
           </div>
-          <button className="text-slate-700 dark:text-white">
+          <button className="text-slate-700">
             <Icon name="menu" size={24} />
           </button>
         </div>
 
         {/* Mobile Hero Image (matches left side) */}
-        <div className="relative w-full h-56 lg:hidden overflow-hidden bg-slate-950">
+        <div className="relative w-full h-56 lg:hidden overflow-hidden bg-slate-900">
           <AnimatePresence mode="wait">
             <motion.img
               key={currentLeft.image}
@@ -809,11 +809,11 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
               className="w-full h-full object-cover opacity-90"
             />
           </AnimatePresence>
-          <div className="absolute inset-0 bg-gradient-to-t from-[slate-50] dark:from-[slate-950] via-transparent to-transparent z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/30 to-transparent z-10" />
         </div>
 
         {/* Auth Content Wrapper */}
-        <div className="rounded-t-[32px] lg:rounded-none -mt-10 lg:mt-0 bg-slate-50 dark:bg-slate-950 relative z-20 px-6 sm:px-12 lg:px-20 py-8 lg:py-16 flex-1 lg:flex-none flex flex-col justify-center max-w-lg mx-auto lg:mx-0 w-full lg:max-w-xl xl:max-w-2xl">
+        <div className="rounded-t-[32px] lg:rounded-none -mt-10 lg:mt-0 bg-white relative z-20 px-6 sm:px-12 lg:px-20 py-8 lg:py-16 flex-1 lg:flex-none flex flex-col justify-center max-w-lg mx-auto lg:mx-0 w-full lg:max-w-xl xl:max-w-2xl">
 
           <AnimatePresence mode="wait">
             {step === "phone" ? (
