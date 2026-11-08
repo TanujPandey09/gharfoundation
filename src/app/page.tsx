@@ -91,24 +91,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Trust Stats Strip */}
-          <div className="flex items-center justify-between gap-4 mt-6 sm:mt-8 border-t border-[#EBEBEB] pt-6 sm:pt-8">
-            <div className="text-center sm:text-left">
-              <div className="text-2xl sm:text-3xl font-extrabold text-[#222222]">50k+</div>
-              <div className="text-xs text-[#717171] font-semibold uppercase tracking-wider">Verified Homes</div>
-            </div>
-            <div className="w-px h-6 bg-[#EBEBEB] hidden sm:block" />
-            <div className="text-center sm:text-left">
-              <div className="text-2xl sm:text-3xl font-extrabold text-[#222222]">₹0</div>
-              <div className="text-xs text-[#717171] font-semibold uppercase tracking-wider">Brokerage Fees</div>
-            </div>
-            <div className="w-px h-6 bg-[#EBEBEB] hidden sm:block" />
-            <div className="text-center sm:text-left">
-              <div className="text-2xl sm:text-3xl font-extrabold text-[#222222]">100%</div>
-              <div className="text-xs text-[#717171] font-semibold uppercase tracking-wider">Aadhaar Verified</div>
-            </div>
-          </div>
-
           {/* Headline */}
           <div className="max-w-3xl mb-8">
             <h1 className="font-display font-extrabold text-3xl sm:text-5xl lg:text-[3.5rem] tracking-tight leading-[1.1] text-[#222222] text-balance">
@@ -254,6 +236,24 @@ export default function HomePage() {
                 ))}
               </div>
             </form>
+          </div>
+
+          {/* Trust Stats Strip */}
+          <div className="flex items-center justify-between gap-4 mt-8 pt-6 border-t border-[#EBEBEB]">
+            <div className="text-center sm:text-left">
+              <div className="text-2xl sm:text-3xl font-extrabold text-[#222222]">50k+</div>
+              <div className="text-xs text-[#717171] font-semibold uppercase tracking-wider">Verified Homes</div>
+            </div>
+            <div className="w-px h-6 bg-[#EBEBEB] hidden sm:block" />
+            <div className="text-center sm:text-left">
+              <div className="text-2xl sm:text-3xl font-extrabold text-[#222222]">₹0</div>
+              <div className="text-xs text-[#717171] font-semibold uppercase tracking-wider">Brokerage Fees</div>
+            </div>
+            <div className="w-px h-6 bg-[#EBEBEB] hidden sm:block" />
+            <div className="text-center sm:text-left">
+              <div className="text-2xl sm:text-3xl font-extrabold text-[#222222]">100%</div>
+              <div className="text-xs text-[#717171] font-semibold uppercase tracking-wider">Aadhaar Verified</div>
+            </div>
           </div>
         </div>
       </section>

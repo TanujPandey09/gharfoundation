@@ -127,6 +127,9 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
   const isAvailableNow =
     !property.availableFrom || new Date(property.availableFrom).getTime() <= Date.now();
 
+  const rawPhone = (property as any).owner?.phone || (property as any).ownerPhone || "919999999999";
+  const cleanPhone = rawPhone.replace(/\D/g, "");
+
   return (
     <motion.article
       whileHover={{ y: -3 }}
@@ -271,14 +274,14 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         {/* Actions */}
         <div className="grid grid-cols-2 gap-2">
           <a
-            href={`tel:+919999999999`}
+            href={`tel:+${cleanPhone}`}
             className="flex h-11 items-center justify-center gap-1.5 rounded-btn border-[1.5px] border-mitti-800 text-sm font-semibold text-mitti-900 transition-colors duration-150 hover:bg-mitti-50 active:scale-[0.98] dark:border-mitti-300 dark:text-white dark:hover:bg-mitti-800"
           >
             <Icon name="call" size={18} />
             Call Owner
           </a>
           <a
-            href={`https://wa.me/919999999999?text=Hi, I am interested in your property: ${encodeURIComponent(property.title)}`}
+            href={`https://wa.me/${cleanPhone}?text=Hi, I am interested in your property: ${encodeURIComponent(property.title)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-11 items-center justify-center gap-1.5 rounded-btn bg-whatsapp text-sm font-semibold text-white transition-[filter,transform] duration-150 hover:brightness-95 active:scale-[0.98]"
