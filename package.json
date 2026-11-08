@@ -1,0 +1,58 @@
+{
+  "name": "gharfoundation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ghar Foundation is a production-ready rental property platform focused exclusively on **Uttarakhand, India**.",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "next.config.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "seed": "node prisma/seed.js",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.39.5",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@hookform/resolvers": "^3.9.0",
+    "@mui/icons-material": "^6.1.1",
+    "@mui/material": "^6.1.1",
+    "@prisma/client": "^5.20.0",
+    "@tanstack/react-query": "^5.56.2",
+    "@types/leaflet": "^1.9.21",
+    "axios": "^1.7.7",
+    "classnames": "^2.5.1",
+    "cloudinary": "^2.5.0",
+    "framer-motion": "^11.5.4",
+    "gsap": "^3.15.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.441.0",
+    "next": "^15.0.0-rc.1",
+    "next-themes": "^0.3.0",
+    "react": "^19.0.0-rc-62306222-20240904",
+    "react-dom": "^19.0.0-rc-62306222-20240904",
+    "react-hook-form": "^7.53.0",
+    "react-leaflet": "^5.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "@types/react": "^19.0.0-rc.1",
+    "@types/react-dom": "^19.0.0-rc.1",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.10.0",
+    "eslint-config-next": "^15.0.0-rc.1",
+    "postcss": "^8.4.47",
+    "prisma": "^5.20.0",
+    "tailwindcss": "^3.4.11",
+    "typescript": "^5.6.2"
+  }
+}

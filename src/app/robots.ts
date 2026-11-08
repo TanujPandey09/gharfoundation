@@ -1,0 +1,13 @@
+import { MetadataRoute } from "next";
+
+export default function robots(): MetadataRoute.Robots {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gharfoundation.com";
+  return {
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/dashboard/", "/api/", "/onboarding", "/sso-callback"],
+    },
+    sitemap: `${baseUrl}/sitemap.xml`,
+  };
+}
