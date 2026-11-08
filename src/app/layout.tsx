@@ -155,7 +155,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex flex-col min-h-screen" suppressHydrationWarning>
-        <ClerkProvider>
+        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_cmVuZXdlZC1zaGVlcC0zNi5jbGVyay5hY2NvdW50cy5kZXYk"}>
           <QueryProvider>
             <AuthProvider>
               <ThemeProvider>
