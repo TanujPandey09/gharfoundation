@@ -59,9 +59,9 @@
   --text-dark-secondary: #B0B0B0;
 
   /* ===== FONTS ===== */
-  --font-bricolage: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --font-bricolage: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-jakarta: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-mukta: 'Mukta', sans-serif;
+  --font-mukta: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
   /* ===== BORDERS ===== */
   --border-light: #EBEBEB;

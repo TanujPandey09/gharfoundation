@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CITIES, PROPERTY_CATEGORIES } from "@/lib/constants";
 import dynamic from "next/dynamic";
 const PropertyMap = dynamic(() => import("@/components/property/PropertyMap"), { ssr: false });
 import { useToast } from "@/lib/context/ToastContext";
 import Icon from "@/components/shared/Icon";
-import Link from "next/link";
 import { Property } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import PropertyCard from "@/components/property/PropertyCard";
@@ -17,7 +16,6 @@ export default function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
-
 
   const [mobileView, setMobileView] = useState<"list" | "map">("list");
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
@@ -48,7 +46,7 @@ export default function SearchContent() {
   const [searchVal, setSearchVal] = useState(initialQuery);
   const [cityFilter, setCityFilter] = useState(initialCity);
   const [typeFilter, setTypeFilter] = useState(initialType);
-  const [maxRent, setMaxRent] = useState<number>(60000); // Slider default
+  const [maxRent, setMaxRent] = useState<number>(60000);
 
   // Quick Toggle Filter States
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -57,7 +55,7 @@ export default function SearchContent() {
   const [bachelorFriendlyOnly, setBachelorFriendlyOnly] = useState(false);
 
   // Sidebar Filter States
-  const [selectedBhk, setSelectedBhk] = useState<number[]>([2, 3]);
+  const [selectedBhk, setSelectedBhk] = useState<number[]>([]);
   const [bathrooms, setBathrooms] = useState<number | null>(null);
   const [parking, setParking] = useState<boolean | null>(null);
   const [internet, setInternet] = useState<boolean | null>(null);
@@ -84,11 +82,6 @@ export default function SearchContent() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Check if a property is zero-brokerage (simulated)
-  const isZeroBrokerage = (prop: Property) => {
-    return prop.rent < 25000 || prop.id === "prop-1" || prop.id === "prop-3";
-  };
 
   // Toggle favorite property
   const toggleFavorite = (id: string) => {
@@ -118,10 +111,8 @@ export default function SearchContent() {
       if (bathrooms !== null) params.append("bathrooms", bathrooms.toString());
       if (verifiedOnly) params.append("verified", "true");
       
-      // Zero Brokerage (Simulation: rent under 25k)
       if (zeroBrokerageOnly && maxRent > 25000) params.set("maxRent", "25000"); 
       
-      // Pet friendly: simulate by adding pet to search text
       if (petFriendlyOnly) {
         params.set("search", searchVal ? `${searchVal} pet` : "pet");
       }
@@ -172,28 +163,31 @@ export default function SearchContent() {
   };
 
   return (
-    <div className="bg-[#f7f9fb] dark:bg-[#14100D] text-[#0A0A0A] dark:text-gray-100 flex flex-col h-[calc(100vh-4rem)] overflow-hidden transition-colors duration-200">
-      {/* 1. Secondary Sticky Search Bar & Filters */}
-      <section className="sticky top-0 z-30 bg-white dark:bg-[#1F1A17] border-b border-gray-150 dark:border-slate-800/80 shadow-sm px-4 md:px-8 py-3.5 space-y-3.5 shrink-0 transition-colors">
+    <div className="bg-white text-[#222222] flex flex-col h-[calc(100vh-4.5rem)] overflow-hidden">
+      
+      {/* ===================================================================== */}
+      {/* 1. TOP STICKY SEARCH & FILTER BAR (AIRBNB + HOUSING.COM HYBRID)       */}
+      {/* ===================================================================== */}
+      <section className="sticky top-0 z-30 bg-white border-b border-[#EBEBEB] px-4 md:px-8 py-3 space-y-3 shrink-0 shadow-sm">
         <div className="max-w-[1440px] mx-auto flex flex-wrap items-center gap-3">
 
           {/* Location Search Box */}
           <div ref={locationRef} className="flex-1 min-w-[240px] relative">
-            <div className="flex items-center gap-2.5 border border-gray-200 dark:border-slate-750 rounded-xl px-3.5 py-2 bg-white dark:bg-[#1F1A17] focus-within:ring-2 focus-within:ring-[#C2522D]/25 focus-within:border-[#C2522D] transition-all">
-              <Icon name="location_on" className="text-gray-400 dark:text-gray-500" />
+            <div className="flex items-center gap-2.5 border border-[#DDDDDD] rounded-full px-4 py-2 bg-white hover:border-[#222222] focus-within:ring-2 focus-within:ring-[#222222]/10 focus-within:border-[#222222] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
+              <Icon name="search" className="text-[#FF385C] shrink-0" size={18} />
               <input
                 type="text"
-                placeholder="Where would you like to stay?"
+                placeholder="Search area, locality, or landmark in Uttarakhand..."
                 value={searchVal}
                 onFocus={() => setShowLocationDropdown(true)}
                 onChange={(e) => {
                   setSearchVal(e.target.value);
                   setShowLocationDropdown(true);
                 }}
-                className="w-full bg-transparent border-none p-0 focus:ring-0 text-xs font-sans font-bold text-gray-800 dark:text-gray-200 placeholder-gray-400"
+                className="w-full bg-transparent border-none p-0 focus:outline-none text-xs font-bold text-[#222222] placeholder:text-[#B0B0B0]"
               />
               {searchVal && (
-                <button onClick={() => setSearchVal("")} className="text-gray-400 hover:text-gray-600">
+                <button onClick={() => setSearchVal("")} className="text-[#717171] hover:text-[#222222]">
                   <Icon name="close" size={16} />
                 </button>
               )}
@@ -201,42 +195,13 @@ export default function SearchContent() {
 
             {/* Location Dropdown */}
             {showLocationDropdown && (
-              <div className="absolute top-full left-0 w-full mt-1.5 bg-white dark:bg-[#1F1A17] rounded-xl shadow-xl border border-gray-200 dark:border-slate-800 overflow-hidden z-50 animate-fadeIn">
-                <div className="p-3 border-b border-gray-100 dark:border-slate-800 bg-slate-50 dark:bg-[#2E2824]">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
-                    Recent Searches
+              <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-[#EBEBEB] overflow-hidden z-50">
+                <div className="p-3 border-b border-[#EBEBEB] bg-[#F7F7F7]">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#717171]">
+                    Popular Uttarakhand Hubs
                   </span>
                 </div>
-                <div className="p-1">
-                  <div
-                    onClick={() => {
-                      setSearchVal("Mussoorie Road, Dehradun");
-                      setCityFilter("Dehradun");
-                      setShowLocationDropdown(false);
-                    }}
-                    className="flex items-center gap-3 p-2.5 hover:bg-slate-50 dark:hover:bg-[#2E2824] rounded-lg cursor-pointer transition-colors"
-                  >
-                    <Icon name="history" className="text-gray-400 text-[20px]" />
-                    <span className="text-xs font-semibold">Mussoorie Road, Dehradun</span>
-                  </div>
-                  <div
-                    onClick={() => {
-                      setSearchVal("Jakhan, Dehradun");
-                      setCityFilter("Dehradun");
-                      setShowLocationDropdown(false);
-                    }}
-                    className="flex items-center gap-3 p-2.5 hover:bg-slate-50 dark:hover:bg-[#2E2824] rounded-lg cursor-pointer transition-colors"
-                  >
-                    <Icon name="history" className="text-gray-400 text-[20px]" />
-                    <span className="text-xs font-semibold">Pacific Mall Area</span>
-                  </div>
-                </div>
-                <div className="p-3 border-y border-gray-100 dark:border-slate-800 bg-slate-50 dark:bg-[#2E2824]">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
-                    Popular Towns
-                  </span>
-                </div>
-                <div className="p-1 max-h-48 overflow-y-auto">
+                <div className="p-1 max-h-56 overflow-y-auto">
                   {CITIES.map((c) => (
                     <div
                       key={c.name}
@@ -245,10 +210,10 @@ export default function SearchContent() {
                         setSearchVal(c.name);
                         setShowLocationDropdown(false);
                       }}
-                      className="flex items-center gap-3 p-2.5 hover:bg-slate-50 dark:hover:bg-[#2E2824] rounded-lg cursor-pointer transition-colors"
+                      className="flex items-center gap-3 p-2.5 hover:bg-[#F7F7F7] rounded-xl cursor-pointer transition-colors"
                     >
-                      <Icon name="trending_up" className="text-[#C2522D]" />
-                      <span className="text-xs font-semibold">{c.name}</span>
+                      <Icon name="place" className="text-[#FF385C]" size={18} />
+                      <span className="text-xs font-bold text-[#222222]">{c.name}</span>
                     </div>
                   ))}
                 </div>
@@ -257,17 +222,17 @@ export default function SearchContent() {
           </div>
 
           {/* Budget Range Slider */}
-          <div className="flex-1 min-w-[210px] border border-gray-200 dark:border-slate-750 rounded-xl px-3.5 py-1.5 bg-white dark:bg-[#1F1A17] flex flex-col justify-between">
+          <div className="flex-1 min-w-[200px] border border-[#DDDDDD] rounded-2xl px-4 py-1.5 bg-white flex flex-col justify-between">
             <div className="flex justify-between items-center mb-0.5">
-              <label className="text-[9px] uppercase font-extrabold tracking-wider text-gray-400 dark:text-slate-500">
-                Budget Range
+              <label className="text-[9px] uppercase font-extrabold tracking-wider text-[#717171]">
+                Max Rent
               </label>
-              <span className="text-[11px] font-extrabold text-[#C2522D]">
+              <span className="text-[11px] font-extrabold text-[#222222] tabular-nums">
                 Under ₹{maxRent === 100000 ? "1L+" : maxRent.toLocaleString()}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-extrabold text-gray-400 dark:text-slate-500">₹5k</span>
+              <span className="text-[9px] font-bold text-[#717171]">₹5k</span>
               <input
                 type="range"
                 min="5000"
@@ -275,9 +240,9 @@ export default function SearchContent() {
                 step="2500"
                 value={maxRent}
                 onChange={(e) => setMaxRent(Number(e.target.value))}
-                className="w-full h-1 bg-gray-150 dark:bg-slate-750 rounded-lg appearance-none cursor-pointer accent-[#C2522D]"
+                className="w-full h-1.5 bg-[#EBEBEB] rounded-lg appearance-none cursor-pointer accent-[#FF385C]"
               />
-              <span className="text-[9px] font-extrabold text-gray-400 dark:text-slate-500">₹1L+</span>
+              <span className="text-[9px] font-bold text-[#717171]">₹1L+</span>
             </div>
           </div>
 
@@ -285,29 +250,29 @@ export default function SearchContent() {
           <div ref={bhkRef} className="relative min-w-[130px]">
             <div
               onClick={() => setShowBhkPopover(!showBhkPopover)}
-              className="border border-gray-200 dark:border-slate-750 rounded-xl px-3.5 py-1.5 bg-white dark:bg-[#1F1A17] flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-[#2E2824] transition-colors"
+              className="border border-[#DDDDDD] hover:border-[#222222] rounded-2xl px-3.5 py-2 bg-white flex items-center justify-between cursor-pointer transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
             >
               <div>
-                <label className="block text-[9px] uppercase font-extrabold tracking-wider text-gray-400 dark:text-slate-500">
+                <label className="block text-[9px] uppercase font-extrabold tracking-wider text-[#717171]">
                   BHK
                 </label>
-                <span className="text-xs font-bold text-slate-800 dark:text-white">
+                <span className="text-xs font-bold text-[#222222]">
                   {selectedBhk.length > 0
                     ? selectedBhk.map((n) => `${n} BHK`).join(", ")
                     : "All Rooms"}
                 </span>
               </div>
-              <Icon name="expand_more" className="text-gray-400 ml-1.5" />
+              <Icon name="expand_more" className="text-[#717171] ml-1.5" size={18} />
             </div>
 
             {showBhkPopover && (
-              <div className="absolute top-full right-0 w-[220px] mt-1.5 bg-white dark:bg-[#1F1A17] rounded-xl shadow-xl border border-gray-200 dark:border-slate-800 p-3.5 z-50 animate-fadeIn space-y-3">
-                <div className="flex justify-between items-center pb-2 border-b border-gray-100 dark:border-slate-800">
-                  <span className="text-xs font-bold">Select Bedrooms</span>
+              <div className="absolute top-full right-0 w-[220px] mt-2 bg-white rounded-2xl shadow-xl border border-[#EBEBEB] p-3.5 z-50 space-y-3">
+                <div className="flex justify-between items-center pb-2 border-b border-[#EBEBEB]">
+                  <span className="text-xs font-bold text-[#222222]">Bedrooms</span>
                   {selectedBhk.length > 0 && (
                     <button
                       onClick={() => setSelectedBhk([])}
-                      className="text-[10px] font-bold text-red-500 hover:underline"
+                      className="text-[10px] font-bold text-[#FF385C] hover:underline"
                     >
                       Clear
                     </button>
@@ -326,10 +291,11 @@ export default function SearchContent() {
                             setSelectedBhk([...selectedBhk, num]);
                           }
                         }}
-                        className={`py-2 text-xs font-bold rounded-lg border transition-all ${isSelected
-                          ? "bg-[#022c22] text-white border-[#022c22] dark:bg-[#C2522D] dark:border-[#C2522D]"
-                          : "border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-350 hover:bg-slate-50 dark:hover:bg-[#2E2824]"
-                          }`}
+                        className={`py-2 text-xs font-bold rounded-xl border transition-all ${
+                          isSelected
+                            ? "bg-[#222222] text-white border-[#222222]"
+                            : "border-[#EBEBEB] text-[#222222] hover:bg-[#F7F7F7]"
+                        }`}
                       >
                         {num} BHK
                       </button>
@@ -341,25 +307,25 @@ export default function SearchContent() {
           </div>
 
           {/* Move-in Date Selector */}
-          <div ref={moveInRef} className="relative min-w-[150px]">
+          <div ref={moveInRef} className="relative min-w-[140px]">
             <div
               onClick={() => setShowMoveInDropdown(!showMoveInDropdown)}
-              className="border border-gray-200 dark:border-slate-750 rounded-xl px-3.5 py-1.5 bg-white dark:bg-[#1F1A17] flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-[#2E2824] transition-colors"
+              className="border border-[#DDDDDD] hover:border-[#222222] rounded-2xl px-3.5 py-2 bg-white flex items-center justify-between cursor-pointer transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
             >
               <div className="flex items-center gap-2">
-                <Icon name="calendar_today" className="text-gray-400 text-[18px]" />
+                <Icon name="calendar_today" className="text-[#FF385C] text-[16px]" />
                 <div>
-                  <label className="block text-[9px] uppercase font-extrabold tracking-wider text-gray-400 dark:text-slate-500">
-                    Move-in Date
+                  <label className="block text-[9px] uppercase font-extrabold tracking-wider text-[#717171]">
+                    Move-in
                   </label>
-                  <span className="text-xs font-bold text-slate-800 dark:text-white">{moveInOption}</span>
+                  <span className="text-xs font-bold text-[#222222]">{moveInOption}</span>
                 </div>
               </div>
-              <Icon name="expand_more" className="text-gray-400 ml-1.5" />
+              <Icon name="expand_more" className="text-[#717171] ml-1" size={18} />
             </div>
 
             {showMoveInDropdown && (
-              <div className="absolute top-full right-0 w-full mt-1.5 bg-white dark:bg-[#1F1A17] rounded-xl shadow-xl border border-gray-200 dark:border-slate-800 overflow-hidden z-50 animate-fadeIn">
+              <div className="absolute top-full right-0 w-full mt-2 bg-white rounded-2xl shadow-xl border border-[#EBEBEB] overflow-hidden z-50">
                 {["Immediate", "Within 15 days", "Within 30 days"].map((option) => (
                   <button
                     key={option}
@@ -368,7 +334,7 @@ export default function SearchContent() {
                       setShowMoveInDropdown(false);
                       showToast(`Move-in filter set to ${option}`, "info");
                     }}
-                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-[#2E2824] text-xs font-semibold transition-colors border-b last:border-b-0 border-gray-100 dark:border-slate-800"
+                    className="w-full text-left px-4 py-2.5 hover:bg-[#F7F7F7] text-xs font-semibold text-[#222222] transition-colors border-b last:border-b-0 border-[#EBEBEB]"
                   >
                     {option}
                   </button>
@@ -377,103 +343,110 @@ export default function SearchContent() {
             )}
           </div>
 
-          {/* Update Search Button */}
+          {/* Search Button (Airbnb Rausch) */}
           <button
             onClick={handleUpdateSearch}
-            className="bg-[#022c22] dark:bg-[#C2522D] text-white px-5 py-3 rounded-xl font-sans text-xs font-bold hover:bg-[#C2522D] dark:hover:bg-emerald-600 transition-colors flex items-center gap-2 shadow-md shrink-0"
+            className="bg-[#FF385C] hover:bg-[#E00B41] text-white px-5 py-2.5 rounded-full font-sans text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shrink-0 active:scale-95"
           >
-            <Icon name="search" size={16} />
-            <span>Update Search</span>
+            <Icon name="search" size={16} className="text-white" />
+            <span>Search</span>
           </button>
         </div>
 
-        {/* Quick Filters Row */}
-        <div className="max-w-[1440px] mx-auto flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 pt-0.5 relative">
+        {/* Quick Filters Pill Strip (Airbnb Category / Filter Chips) */}
+        <div className="max-w-[1440px] mx-auto flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 pt-0.5">
           <button
             onClick={() => setVerifiedOnly(!verifiedOnly)}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${verifiedOnly
-              ? "border-emerald-300 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
-              : "border-gray-200 dark:border-slate-800 bg-white dark:bg-[#1F1A17] text-gray-500 dark:text-gray-400 hover:border-gray-300"
-              }`}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${
+              verifiedOnly
+                ? "border-forest-300 bg-forest-50 text-forest-700"
+                : "border-[#DDDDDD] bg-white text-[#222222] hover:border-[#222222]"
+            }`}
           >
-            <Icon name="verified" size={16} className={verifiedOnly ? "text-emerald-600" : "text-gray-400"} fill={verifiedOnly} />
-            <span>Verified</span>
+            <Icon name="verified" size={15} className={verifiedOnly ? "text-forest-600" : "text-[#717171]"} fill={verifiedOnly} />
+            <span>Verified Owner</span>
           </button>
 
           <button
             onClick={() => setZeroBrokerageOnly(!zeroBrokerageOnly)}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${zeroBrokerageOnly
-              ? "border-emerald-300 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
-              : "border-gray-200 dark:border-slate-800 bg-white dark:bg-[#1F1A17] text-gray-500 dark:text-gray-400 hover:border-gray-300"
-              }`}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${
+              zeroBrokerageOnly
+                ? "border-forest-300 bg-forest-50 text-forest-700"
+                : "border-[#DDDDDD] bg-white text-[#222222] hover:border-[#222222]"
+            }`}
           >
-            <span>Zero Brokerage</span>
+            <span>₹0 Brokerage</span>
           </button>
 
           <button
             onClick={() => {
-              if (maxRent <= 20000) {
+              if (maxRent <= 15000) {
                 setMaxRent(60000);
-                showToast("Budget filter reset to default", "info");
+                showToast("Budget filter reset", "info");
               } else {
-                setMaxRent(20000);
-                showToast("Budget capped under ₹20,000", "info");
+                setMaxRent(15000);
+                showToast("Budget set under ₹15,000", "info");
               }
             }}
-            className={`px-4 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${maxRent <= 20000
-              ? "border-emerald-300 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
-              : "border-gray-200 dark:border-slate-800 bg-white dark:bg-[#1F1A17] text-gray-500 dark:text-gray-400 hover:border-gray-300"
-              }`}
+            className={`px-3.5 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${
+              maxRent <= 15000
+                ? "border-[#222222] bg-[#222222] text-white"
+                : "border-[#DDDDDD] bg-white text-[#222222] hover:border-[#222222]"
+            }`}
           >
-            Under ₹20K
-          </button>
-
-          <button
-            onClick={() => setPetFriendlyOnly(!petFriendlyOnly)}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${petFriendlyOnly
-              ? "border-emerald-300 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
-              : "border-gray-200 dark:border-slate-800 bg-white dark:bg-[#1F1A17] text-gray-500 dark:text-gray-400 hover:border-gray-300"
-              }`}
-          >
-            <span>Pet Friendly</span>
+            Under ₹15K
           </button>
 
           <button
             onClick={() => setBachelorFriendlyOnly(!bachelorFriendlyOnly)}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${bachelorFriendlyOnly
-              ? "border-emerald-300 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
-              : "border-gray-200 dark:border-slate-800 bg-white dark:bg-[#1F1A17] text-gray-500 dark:text-gray-400 hover:border-gray-300"
-              }`}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${
+              bachelorFriendlyOnly
+                ? "border-[#222222] bg-[#222222] text-white"
+                : "border-[#DDDDDD] bg-white text-[#222222] hover:border-[#222222]"
+            }`}
           >
-            <span>Bachelor Friendly</span>
+            <span>Bachelors Welcome</span>
           </button>
 
-          <div className="h-4 w-[1px] bg-gray-200 dark:bg-slate-850 mx-2 shrink-0"></div>
+          <button
+            onClick={() => setPetFriendlyOnly(!petFriendlyOnly)}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-bold whitespace-nowrap transition-all ${
+              petFriendlyOnly
+                ? "border-[#222222] bg-[#222222] text-white"
+                : "border-[#DDDDDD] bg-white text-[#222222] hover:border-[#222222]"
+            }`}
+          >
+            <span>Pet Friendly</span>
+          </button>
+
+          <div className="h-4 w-px bg-[#EBEBEB] mx-1 shrink-0" />
 
           <button
             onClick={() => setShowFilterDrawer(!showFilterDrawer)}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-gray-200 dark:border-slate-800 bg-white dark:bg-[#1F1A17] text-gray-500 dark:text-gray-400 text-xs font-bold hover:border-primary whitespace-nowrap transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#DDDDDD] bg-white text-[#222222] text-xs font-bold hover:border-[#222222] whitespace-nowrap transition-all"
           >
-            <Icon name="tune" size={16} />
-            <span>More Filters</span>
+            <Icon name="tune" size={15} />
+            <span>All Filters</span>
           </button>
         </div>
       </section>
 
-      {/* 2. Split Screen Content Container */}
+      {/* ===================================================================== */}
+      {/* 2. SPLIT SCREEN WORKSPACE (MAP + LISTING GRID)                        */}
+      {/* ===================================================================== */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: Interactive Map */}
+        
+        {/* Left: Map (Airbnb Split Screen) */}
         {!hideMap && (
-          <aside className="hidden lg:block w-[42%] h-full relative bg-slate-100 dark:bg-[#14100D] shrink-0 border-r border-gray-250 dark:border-slate-800 animate-slideRight">
+          <aside className="hidden lg:block w-[42%] h-full relative bg-[#F7F7F7] shrink-0 border-r border-[#EBEBEB]">
             <button
               onClick={() => setHideMap(true)}
-              className="absolute top-4 left-4 z-20 bg-white/95 dark:bg-[#1F1A17]/95 backdrop-blur-md px-4 py-2 rounded-full shadow-md flex items-center gap-2 text-xs font-bold text-[#C2522D] dark:text-[#C2522D] hover:bg-white transition-all border border-gray-200 dark:border-slate-800"
+              className="absolute top-4 left-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5 text-xs font-bold text-[#222222] hover:bg-white transition-all border border-[#EBEBEB]"
             >
-              <Icon name="map" size={18} />
+              <Icon name="map" size={16} />
               <span>Hide Map</span>
             </button>
 
-            {/* Simulated Leaflet interactive map */}
             <div className="w-full h-full">
               <PropertyMap
                 properties={filteredProperties}
@@ -484,67 +457,69 @@ export default function SearchContent() {
           </aside>
         )}
 
-        {/* Right: Property List Workspace */}
-        <section className="flex-1 h-full overflow-y-auto bg-[#f8fafc] dark:bg-[#14100D] px-4 md:px-8 py-5 scroll-smooth flex flex-col">
-          <div className="max-w-[1024px] mx-auto w-full flex-grow flex flex-col">
-            {/* Header Controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5 shrink-0">
+        {/* Right: Property Listings Grid */}
+        <section className="flex-1 h-full overflow-y-auto bg-white px-4 md:px-8 py-5 flex flex-col">
+          <div className="max-w-[1100px] mx-auto w-full flex-grow flex flex-col">
+            
+            {/* Header Result Counter & Sort */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 shrink-0">
               <div>
-                <h1 className="text-xl font-bold font-sans text-gray-900 dark:text-white flex items-center gap-2">
-                  <span>Properties for Rent in {cityFilter || "Uttarakhand"}</span>
+                <h1 className="text-xl sm:text-2xl font-extrabold font-sans text-[#222222] flex items-center gap-2">
+                  <span>Rental Homes in {cityFilter || "Uttarakhand"}</span>
                   {hideMap && (
                     <button
                       onClick={() => setHideMap(false)}
-                      className="hidden lg:flex items-center gap-1 text-xs text-[#C2522D] dark:text-[#C2522D] font-bold hover:underline"
+                      className="hidden lg:inline-flex text-xs text-[#FF385C] font-bold hover:underline"
                     >
                       (Show Map)
                     </button>
                   )}
                 </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  Found {filteredProperties.length} results matching your search criteria
+                <p className="text-xs text-[#717171] mt-0.5 font-medium">
+                  {filteredProperties.length} verified direct owner listings found
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 bg-white dark:bg-[#1F1A17] px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-850">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+              <div className="flex items-center gap-2 bg-[#F7F7F7] px-3 py-1.5 rounded-xl border border-[#EBEBEB]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#717171]">
                   Sort By:
                 </span>
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
-                  className="border-none p-0 text-xs font-bold bg-transparent text-gray-700 dark:text-gray-300 focus:ring-0 cursor-pointer"
+                  className="border-none p-0 text-xs font-bold bg-transparent text-[#222222] focus:outline-none cursor-pointer"
                 >
-                  <option value="relevance">Relevance</option>
+                  <option value="relevance">Recommended</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
-                  <option value="popular">Popularity</option>
+                  <option value="popular">Most Popular</option>
                 </select>
               </div>
             </div>
 
             {/* List & Drawer Workspace */}
             <div className="flex gap-6 items-start flex-grow">
-              {/* Filter Sidebar Drawer inside workspace (toggles on desktop) */}
+              
+              {/* Filter Sidebar Drawer */}
               {showFilterDrawer && (
-                <div className="hidden lg:block w-[280px] bg-white dark:bg-[#1F1A17] p-5 rounded-xl border border-gray-200 dark:border-slate-850 space-y-4 shrink-0 shadow-sm animate-slideLeft">
-                  <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-slate-800">
-                    <span className="font-sans font-bold text-xs text-[#C2522D] dark:text-[#C2522D] uppercase tracking-wider flex items-center gap-1.5">
-                      <Icon name="filter_alt" size={16} />
+                <div className="hidden lg:block w-[280px] bg-white p-5 rounded-2xl border border-[#EBEBEB] space-y-4 shrink-0 shadow-sm animate-in fade-in">
+                  <div className="flex justify-between items-center pb-3 border-b border-[#EBEBEB]">
+                    <span className="font-sans font-bold text-xs text-[#222222] uppercase tracking-wider flex items-center gap-1.5">
+                      <Icon name="tune" size={16} />
                       <span>Refine Search</span>
                     </span>
                     <button
                       onClick={resetFilters}
-                      className="text-[10px] text-gray-400 hover:text-red-500 font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
+                      className="text-[10px] text-[#717171] hover:text-[#FF385C] font-bold uppercase tracking-wider flex items-center gap-1 transition-colors"
                     >
-                      <Icon name="restart_alt" size={14} />
+                      <Icon name="restart_alt" size={13} />
                       <span>Reset</span>
                     </button>
                   </div>
 
                   {/* District / City Dropdown */}
                   <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500 tracking-wider">
+                    <label className="text-[10px] uppercase font-bold text-[#717171] tracking-wider">
                       District Area
                     </label>
                     <select
@@ -553,7 +528,7 @@ export default function SearchContent() {
                         setCityFilter(e.target.value);
                         if (e.target.value) setSearchVal(e.target.value);
                       }}
-                      className="w-full bg-slate-50 dark:bg-[#1F1A17] border border-gray-200 dark:border-slate-750 text-xs font-semibold py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-gray-800 dark:text-gray-200"
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] text-xs font-semibold py-2 px-3 rounded-xl focus:outline-none focus:border-[#222222] text-[#222222]"
                     >
                       <option value="">All Uttarakhand</option>
                       {CITIES.map((c) => (
@@ -566,15 +541,15 @@ export default function SearchContent() {
 
                   {/* Category Selector */}
                   <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500 tracking-wider">
-                      Category Type
+                    <label className="text-[10px] uppercase font-bold text-[#717171] tracking-wider">
+                      Configuration
                     </label>
                     <select
                       value={typeFilter}
                       onChange={(e) => setTypeFilter(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1F1A17] border border-gray-200 dark:border-slate-750 text-xs font-semibold py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-gray-800 dark:text-gray-200"
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] text-xs font-semibold py-2 px-3 rounded-xl focus:outline-none focus:border-[#222222] text-[#222222]"
                     >
-                      <option value="">All Categories</option>
+                      <option value="">All Types</option>
                       {PROPERTY_CATEGORIES.map((c) => (
                         <option key={c.id} value={c.value}>
                           {c.label}
@@ -583,9 +558,9 @@ export default function SearchContent() {
                     </select>
                   </div>
 
-                  {/* Bathrooms Selector */}
+                  {/* Bathrooms */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500 tracking-wider">
+                    <label className="text-[10px] uppercase font-bold text-[#717171] tracking-wider">
                       Bathrooms
                     </label>
                     <div className="flex gap-1.5">
@@ -593,10 +568,11 @@ export default function SearchContent() {
                         <button
                           key={num}
                           onClick={() => setBathrooms(bathrooms === num ? null : num)}
-                          className={`flex-grow py-1.5 text-xs font-bold rounded-lg border transition-all ${bathrooms === num
-                            ? "bg-[#C2522D] text-white border-[#C2522D]"
-                            : "border-gray-250 dark:border-slate-700 text-gray-700 dark:text-gray-350 hover:bg-slate-50 dark:hover:bg-[#2E2824]"
-                            }`}
+                          className={`flex-grow py-1.5 text-xs font-bold rounded-xl border transition-all ${
+                            bathrooms === num
+                              ? "bg-[#222222] text-white border-[#222222]"
+                              : "border-[#EBEBEB] text-[#222222] hover:bg-[#F7F7F7]"
+                          }`}
                         >
                           {num} Bath
                         </button>
@@ -606,13 +582,13 @@ export default function SearchContent() {
 
                   {/* Furnishing Status */}
                   <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500 tracking-wider">
-                      Furnished Status
+                    <label className="text-[10px] uppercase font-bold text-[#717171] tracking-wider">
+                      Furnishing
                     </label>
                     <select
                       value={furnishing}
                       onChange={(e) => setFurnishing(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1F1A17] border border-gray-200 dark:border-slate-750 text-xs font-semibold py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-gray-800 dark:text-gray-200"
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] text-xs font-semibold py-2 px-3 rounded-xl focus:outline-none focus:border-[#222222] text-[#222222]"
                     >
                       <option value="">Any furnishing</option>
                       <option value="UNFURNISHED">Unfurnished</option>
@@ -623,32 +599,32 @@ export default function SearchContent() {
 
                   {/* Tenant Preference */}
                   <div className="space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500 tracking-wider">
+                    <label className="text-[10px] uppercase font-bold text-[#717171] tracking-wider">
                       Tenant Preference
                     </label>
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#1F1A17] border border-gray-200 dark:border-slate-750 text-xs font-semibold py-2 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary text-gray-800 dark:text-gray-200"
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] text-xs font-semibold py-2 px-3 rounded-xl focus:outline-none focus:border-[#222222] text-[#222222]"
                     >
                       <option value="">Any tenant</option>
                       <option value="FAMILY">Family Preferred</option>
-                      <option value="STUDENTS">Students welcome</option>
-                      <option value="BACHELOR">Bachelors allowed</option>
+                      <option value="STUDENTS">Students Welcome</option>
+                      <option value="BACHELOR">Bachelors Allowed</option>
                     </select>
                   </div>
 
                   {/* Amenities */}
-                  <div className="space-y-2 pt-1 border-t border-gray-150 dark:border-slate-800">
+                  <div className="space-y-2 pt-2 border-t border-[#EBEBEB]">
                     <label className="flex items-center gap-2 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={parking === true}
                         onChange={(e) => setParking(e.target.checked ? true : null)}
-                        className="rounded border-gray-300 dark:border-slate-700 text-[#C2522D] focus:ring-[#C2522D] h-4 w-4"
+                        className="rounded border-[#DDDDDD] text-[#FF385C] focus:ring-[#FF385C] h-4 w-4"
                       />
-                      <span className="text-xs text-gray-700 dark:text-gray-300 font-semibold">
-                        Gated Parking Space
+                      <span className="text-xs text-[#222222] font-semibold">
+                        Gated Parking
                       </span>
                     </label>
 
@@ -657,9 +633,9 @@ export default function SearchContent() {
                         type="checkbox"
                         checked={internet === true}
                         onChange={(e) => setInternet(e.target.checked ? true : null)}
-                        className="rounded border-gray-300 dark:border-slate-700 text-[#C2522D] focus:ring-[#C2522D] h-4 w-4"
+                        className="rounded border-[#DDDDDD] text-[#FF385C] focus:ring-[#FF385C] h-4 w-4"
                       />
-                      <span className="text-xs text-gray-700 dark:text-gray-300 font-semibold">
+                      <span className="text-xs text-[#222222] font-semibold">
                         High-Speed Wi-Fi
                       </span>
                     </label>
@@ -670,9 +646,9 @@ export default function SearchContent() {
                       setShowFilterDrawer(false);
                       handleUpdateSearch();
                     }}
-                    className="w-full bg-[#C2522D] hover:bg-[#C2522D]/90 text-white font-bold text-xs py-2.5 rounded-lg shadow-sm transition-colors mt-2"
+                    className="w-full bg-[#222222] hover:bg-black text-white font-bold text-xs py-2.5 rounded-xl shadow-sm transition-all mt-2 active:scale-95"
                   >
-                    Apply Filter Set
+                    Apply Filters
                   </button>
                 </div>
               )}
@@ -680,43 +656,43 @@ export default function SearchContent() {
               {/* Grid of Property Cards */}
               <div className="flex-1">
                 {isError ? (
-                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-12 text-center rounded-xl space-y-4 shadow-sm w-full transition-colors">
-                    <Icon name="error_outline" className="mx-auto text-red-500" size={48} />
-                    <h3 className="font-sans font-bold text-base text-red-800 dark:text-red-200">
+                  <div className="bg-red-50 border border-red-200 p-12 text-center rounded-2xl space-y-4 shadow-sm w-full">
+                    <Icon name="error_outline" className="mx-auto text-red-500" size={44} />
+                    <h3 className="font-sans font-bold text-base text-red-800">
                       Failed to fetch properties
                     </h3>
-                    <p className="text-xs text-red-600 dark:text-red-400 max-w-sm mx-auto leading-relaxed">
-                      We encountered an error loading the properties. Please try again or adjust your filters.
+                    <p className="text-xs text-red-600 max-w-sm mx-auto leading-relaxed">
+                      Error communicating with listings API. Please refresh or reset filters.
                     </p>
                     <button
                       onClick={resetFilters}
-                      className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs py-2.5 px-5 rounded-lg shadow-sm transition-colors"
+                      className="bg-[#FF385C] hover:bg-[#E00B41] text-white font-bold text-xs py-2.5 px-5 rounded-xl shadow-sm transition-colors"
                     >
-                      Clear Filters & Retry
+                      Clear Filters &amp; Retry
                     </button>
                   </div>
                 ) : isLoading ? (
-                   <div className="flex justify-center items-center h-64">
-                     <Icon name="sync" className="animate-spin text-primary" size={32} />
-                   </div>
+                  <div className="flex justify-center items-center h-64">
+                    <Icon name="sync" className="animate-spin text-[#FF385C]" size={36} />
+                  </div>
                 ) : filteredProperties.length === 0 ? (
-                  <div className="bg-white dark:bg-[#1F1A17] border border-gray-200 dark:border-slate-850 p-12 text-center rounded-xl space-y-4 shadow-sm w-full transition-colors">
-                    <Icon name="search_off" className="mx-auto text-gray-400 dark:text-slate-500" size={48} />
-                    <h3 className="font-sans font-bold text-base text-gray-800 dark:text-gray-200">
-                      No matching Uttarakhand properties found
+                  <div className="bg-[#F7F7F7] border border-[#EBEBEB] p-12 text-center rounded-3xl space-y-4 shadow-sm w-full">
+                    <Icon name="search_off" className="mx-auto text-[#B0B0B0]" size={48} />
+                    <h3 className="font-sans font-bold text-lg text-[#222222]">
+                      No matching rental homes found
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
-                      Try widening your budget, selecting another district region, or clearing current advanced refinements.
+                    <p className="text-xs text-[#717171] max-w-sm mx-auto leading-relaxed">
+                      Try widening your budget range, clearing filters, or searching an adjacent locality.
                     </p>
                     <button
                       onClick={resetFilters}
-                      className="bg-[#C2522D] dark:bg-[#C2522D] hover:opacity-95 text-white font-bold text-xs py-2.5 px-5 rounded-lg shadow-sm transition-colors"
+                      className="bg-[#222222] hover:bg-black text-white font-bold text-xs py-2.5 px-6 rounded-xl shadow-sm transition-all"
                     >
                       Clear All Filter Parameters
                     </button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-20">
                     {filteredProperties.map((prop: any) => (
                       <PropertyCard
                         key={prop.id}
@@ -729,13 +705,14 @@ export default function SearchContent() {
               </div>
             </div>
           </div>
-          <div className="mt-12 -mx-4 md:-mx-8 border-t border-gray-200 dark:border-slate-800">
+
+          <div className="mt-12 -mx-4 md:-mx-8 border-t border-[#EBEBEB]">
             <Footer forceShow={true} />
           </div>
         </section>
       </div>
 
-      {/* Mobile Toggle Map/List Button floating in viewport */}
+      {/* Mobile Floating Map/List Toggle (Airbnb style) */}
       <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 lg:hidden">
         <button
           onClick={() => {
@@ -743,25 +720,25 @@ export default function SearchContent() {
             setMobileView(nextView);
             showToast(`Switched to ${nextView} view`, "info");
           }}
-          className="bg-slate-900 dark:bg-slate-850 text-white font-bold text-xs py-3 px-5 rounded-full shadow-lg border border-slate-750 flex items-center space-x-2 backdrop-blur-md bg-opacity-95"
+          className="bg-[#222222] hover:bg-black text-white font-bold text-xs py-3 px-5 rounded-full shadow-xl flex items-center space-x-2 active:scale-95 transition-all"
         >
           {mobileView === "list" ? (
             <>
               <Icon name="map" size={16} className="text-white" />
-              <span>Show Map View</span>
+              <span>Map View</span>
             </>
           ) : (
             <>
               <Icon name="format_list_bulleted" size={16} className="text-white" />
-              <span>Show List View</span>
+              <span>List View</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Mobile Map Panel View overlay */}
+      {/* Mobile Map Panel */}
       {mobileView === "map" && (
-        <div className="lg:hidden absolute inset-0 z-20 pt-[124px] pb-[60px] bg-slate-100">
+        <div className="lg:hidden absolute inset-0 z-20 pt-[124px] pb-[60px] bg-[#F7F7F7]">
           <PropertyMap
             properties={filteredProperties}
             selectedProperty={selectedProperty}

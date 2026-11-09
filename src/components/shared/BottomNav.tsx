@@ -56,7 +56,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-nav bg-white/95 dark:bg-mitti-950/95 backdrop-blur-md border-t border-mitti-200/80 dark:border-mitti-800 pb-[env(safe-area-inset-bottom)] transition-colors"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-nav bg-white/98 backdrop-blur-md border-t border-[#EBEBEB] pb-[env(safe-area-inset-bottom)] transition-colors shadow-[0_-2px_10px_rgba(0,0,0,0.04)]"
     >
       <div className="flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
@@ -67,10 +67,10 @@ export default function BottomNav() {
                 href={tab.href}
                 className="relative -top-3 flex flex-col items-center group focus:outline-none"
               >
-                <div className="w-12 h-12 rounded-full bg-terracotta-600 hover:bg-terracotta-700 text-white shadow-e2 flex items-center justify-center transition-transform active:scale-95">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF385C] to-[#E00B41] text-white shadow-lg shadow-[#FF385C]/25 flex items-center justify-center transition-transform active:scale-95">
                   <Icon name={tab.icon} size={24} className="text-white" />
                 </div>
-                <span className="text-[10px] font-semibold text-terracotta-700 dark:text-terracotta-400 mt-0.5">
+                <span className="text-[10px] font-bold text-[#FF385C] mt-0.5">
                   {tab.label}
                 </span>
               </Link>
@@ -83,15 +83,15 @@ export default function BottomNav() {
               href={tab.href}
               className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-lg transition-colors min-w-[56px] ${
                 tab.active
-                  ? "text-terracotta-600 dark:text-terracotta-400 font-semibold"
-                  : "text-mitti-500 hover:text-mitti-800 dark:text-mitti-400 dark:hover:text-mitti-100"
+                  ? "text-[#FF385C] font-semibold"
+                  : "text-[#717171] hover:text-[#222222]"
               }`}
             >
               <Icon
                 name={tab.icon}
                 size={22}
                 fill={tab.active}
-                className={tab.active ? "text-terracotta-600 dark:text-terracotta-400" : "text-mitti-500 dark:text-mitti-400"}
+                className={tab.active ? "text-[#FF385C]" : "text-[#717171]"}
               />
               <span className="text-[11px] leading-tight mt-0.5">{tab.label}</span>
             </Link>

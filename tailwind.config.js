@@ -135,8 +135,8 @@ const config = {
       },
       fontFamily: {
         sans: ["var(--font-jakarta)", "system-ui", "-apple-system", "BlinkMacSystemFont", "Roboto", "sans-serif"],
-        display: ["var(--font-bricolage)", "var(--font-jakarta)", "sans-serif"],
-        cereal: ["var(--font-jakarta)", "sans-serif"],
+        display: ["var(--font-jakarta)", "system-ui", "-apple-system", "sans-serif"],
+        cereal: ["var(--font-jakarta)", "system-ui", "-apple-system", "sans-serif"],
       },
       borderRadius: {
         btn: "10px",

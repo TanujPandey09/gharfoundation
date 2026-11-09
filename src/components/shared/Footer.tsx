@@ -25,50 +25,53 @@ export const Footer: React.FC<{ forceShow?: boolean }> = ({ forceShow }) => {
   if (!forceShow && (pathname === "/login" || pathname === "/signup" || pathname === "/onboarding")) return null;
 
   return (
-    <footer className="bg-mitti-950 text-mitti-100 border-t border-mitti-900 transition-colors">
-      <div className="max-w-[1200px] mx-auto px-5 md:px-8 lg:px-10 py-14 md:py-18">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10">
-          {/* Brand */}
+    <footer className="bg-[#F7F7F7] text-[#222222] border-t border-[#EBEBEB]">
+      <div className="max-w-[1320px] mx-auto px-6 md:px-8 lg:px-12 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
+          
+          {/* Brand Column */}
           <div className="lg:col-span-2">
-            <Link href="/" className="inline-flex items-baseline gap-2 mb-3">
-              <span className="font-display font-extrabold text-2xl text-cream">
-                Ghar<span className="text-terracotta-500">.</span>
+            <Link href="/" className="inline-flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-[#FF385C] flex items-center justify-center text-white">
+                <Icon name="home_work" size={18} className="text-white" />
+              </div>
+              <span className="font-sans font-extrabold text-2xl tracking-tight text-[#222222]">
+                Ghar<span className="text-[#FF385C]">.</span>
               </span>
-              <span className="text-xs text-mitti-400">Foundation</span>
             </Link>
-            <p className="text-mitti-400 text-sm leading-relaxed max-w-sm mb-5">
-              Rental rooms, flats, and houses across Uttarakhand — directly from verified owners. Zero broker commission, direct contact for families, couples, and professionals.
+            <p className="text-[#717171] text-xs sm:text-sm leading-relaxed max-w-sm mb-5 font-normal">
+              Uttarakhand's direct rental home platform connecting renters with verified property owners across all 13 districts with zero brokerage fees.
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <a
                 href="https://wa.me/919999999999?text=Hello,%20I%20have%20an%20inquiry%20about%20Ghar%20Foundation."
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-whatsapp hover:brightness-110 text-white text-xs font-semibold px-3.5 py-2 rounded-btn transition-transform active:scale-95"
+                className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm active:scale-95"
               >
                 <WhatsAppIcon size={16} />
-                WhatsApp Support
+                <span>WhatsApp Helpline</span>
               </a>
-              <span className="text-xs text-mitti-500">Dehradun · Haldwani · Rishikesh</span>
+              <span className="text-xs text-[#717171] font-semibold">Dehradun · Rishikesh · Haldwani</span>
             </div>
           </div>
 
-          {/* Local Cities */}
+          {/* Top Uttarakhand Localities */}
           <div>
-            <h3 className="font-sans font-bold text-cream mb-3.5 text-xs uppercase tracking-wider">
-              Top Localities
+            <h3 className="font-sans font-extrabold text-[#222222] mb-3.5 text-xs uppercase tracking-wider">
+              Popular Localities
             </h3>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-2.5 text-xs font-semibold">
               {[
+                { label: "Rajpur Road, Dehradun", href: "/search?city=Dehradun&q=Rajpur+Road" },
                 { label: "Prem Nagar, Dehradun", href: "/search?city=Dehradun&q=Prem+Nagar" },
-                { label: "Rajpur Road, Doon", href: "/search?city=Dehradun&q=Rajpur+Road" },
-                { label: "Clement Town, Doon", href: "/search?city=Dehradun&q=Clement+Town" },
+                { label: "Jakhan, Dehradun", href: "/search?city=Dehradun&q=Jakhan" },
+                { label: "Clement Town, Dehradun", href: "/search?city=Dehradun&q=Clement+Town" },
+                { label: "Tapovan, Rishikesh", href: "/search?city=Rishikesh&q=Tapovan" },
                 { label: "Haldwani, Nainital", href: "/search?city=Haldwani" },
-                { label: "Rishikesh Tapovan", href: "/search?city=Rishikesh" },
-                { label: "Haridwar & Roorkee", href: "/search?city=Haridwar" },
               ].map((item) => (
                 <li key={item.label}>
-                  <Link href={item.href} className="text-mitti-400 hover:text-cream transition-colors">
+                  <Link href={item.href} className="text-[#717171] hover:text-[#222222] hover:underline transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -76,21 +79,22 @@ export const Footer: React.FC<{ forceShow?: boolean }> = ({ forceShow }) => {
             </ul>
           </div>
 
-          {/* Tenants & Owners */}
+          {/* Services & Support */}
           <div>
-            <h3 className="font-sans font-bold text-cream mb-3.5 text-xs uppercase tracking-wider">
+            <h3 className="font-sans font-extrabold text-[#222222] mb-3.5 text-xs uppercase tracking-wider">
               Services
             </h3>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-2.5 text-xs font-semibold">
               {[
-                { label: "Free Property Listing", href: "/post-property" },
-                { label: "Families & Couples", href: "/search?gender=FAMILY" },
-                { label: "Pricing & Boosts", href: "/pricing" },
+                { label: "List Property (100% Free)", href: "/post-property" },
+                { label: "Family & Couple Friendly", href: "/search?gender=FAMILY" },
+                { label: "Student & Bachelor PGs", href: "/search?gender=BACHELOR" },
+                { label: "Pricing & Boost Plans", href: "/pricing" },
                 { label: "Police Verification Guide", href: "/safety-tips" },
-                { label: "Rent Agreement Templates", href: "/faq" },
+                { label: "Digital Rent Agreements", href: "/faq" },
               ].map((item) => (
                 <li key={item.label}>
-                  <Link href={item.href} className="text-mitti-400 hover:text-cream transition-colors">
+                  <Link href={item.href} className="text-[#717171] hover:text-[#222222] hover:underline transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -98,21 +102,22 @@ export const Footer: React.FC<{ forceShow?: boolean }> = ({ forceShow }) => {
             </ul>
           </div>
 
-          {/* Trust & Safety */}
+          {/* Trust & Legal */}
           <div>
-            <h3 className="font-sans font-bold text-cream mb-3.5 text-xs uppercase tracking-wider">
-              Trust &amp; Safety
+            <h3 className="font-sans font-extrabold text-[#222222] mb-3.5 text-xs uppercase tracking-wider">
+              About &amp; Trust
             </h3>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-2.5 text-xs font-semibold">
               {[
-                { label: "Safety Tips", href: "/safety-tips" },
-                { label: "About Ghar", href: "/about" },
+                { label: "About Ghar Foundation", href: "/about" },
+                { label: "Safety & KYC Tips", href: "/safety-tips" },
                 { label: "Frequently Asked Questions", href: "/faq" },
                 { label: "Contact Us", href: "/contact" },
-                { label: "Privacy Policy", href: "/privacy" },
+                { label: "Privacy Policy (DPDP)", href: "/privacy" },
+                { label: "Terms of Service", href: "/terms" },
               ].map((item) => (
                 <li key={item.label}>
-                  <Link href={item.href} className="text-mitti-400 hover:text-cream transition-colors">
+                  <Link href={item.href} className="text-[#717171] hover:text-[#222222] hover:underline transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -121,12 +126,18 @@ export const Footer: React.FC<{ forceShow?: boolean }> = ({ forceShow }) => {
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="border-t border-mitti-900 mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-mitti-500">
-          <p>© {currentYear} Ghar Foundation. Uttarakhand's Direct Rental Network.</p>
-          <p className="flex items-center gap-1 text-mitti-400">
-            <span>Zero Brokerage · 100% Direct Owner Contact</span>
-          </p>
+        {/* Bottom Bar (Airbnb Style) */}
+        <div className="border-t border-[#EBEBEB] mt-12 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#717171] font-medium">
+          <p>© {currentYear} Ghar Foundation. All rights reserved. Zero Brokerage Rental Homes across Uttarakhand.</p>
+          <div className="flex items-center gap-4 text-xs font-semibold">
+            <Link href="/privacy" className="hover:underline">Privacy</Link>
+            <span>·</span>
+            <Link href="/terms" className="hover:underline">Terms</Link>
+            <span>·</span>
+            <Link href="/sitemap.xml" className="hover:underline">Sitemap</Link>
+            <span>·</span>
+            <span className="text-forest-700 font-bold">100% Direct Owner</span>
+          </div>
         </div>
       </div>
     </footer>

@@ -55,6 +55,7 @@ export const config = {
     // Always run for API routes
     "/(api|trpc)(.*)",
     // Required for Clerk proxy on vercel.app
+    "/__clerk",
     "/__clerk/:path*",
   ],
 };

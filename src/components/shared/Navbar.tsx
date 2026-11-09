@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -16,10 +16,22 @@ export const Navbar: React.FC = () => {
   const { showToast } = useToast();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const isSearchPage = pathname === "/search";
   const activeCity = searchParams.get("city") || searchParams.get("q") || "";
   const [propertiesCount, setPropertiesCount] = useState(0);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!isSearchPage) return;
@@ -43,211 +55,315 @@ export const Navbar: React.FC = () => {
     showToast("City filter cleared", "info");
   };
 
-  const navLinks = [
-    { label: "Find Homes", href: "/search" },
-    { label: "Families & Couples", href: "/search?gender=FAMILY" },
-    { label: "Pricing & Services", href: "/pricing" },
-    { label: "Safety & Verification", href: "/safety-tips" },
-    { label: "Contact", href: "/contact" },
-  ];
-
   return (
     <>
-      <header className="sticky top-0 z-nav bg-cream/90 dark:bg-mitti-950/90 backdrop-blur-md border-b border-mitti-200/80 dark:border-mitti-800 px-4 md:px-8 lg:px-12 py-3.5 flex items-center justify-between transition-colors">
-        <div className="flex items-center space-x-4 md:space-x-6">
-          <Link href="/" className="flex items-baseline gap-2 group">
-            <span className="font-display font-extrabold text-xl md:text-2xl tracking-tight text-mitti-950 dark:text-cream group-hover:text-terracotta-600 transition-colors">
-              Ghar<span className="text-terracotta-600">.</span>
-            </span>
-            <span className="hidden sm:inline-block text-[11px] font-medium text-mitti-500 dark:text-mitti-400 border-l border-mitti-300 dark:border-mitti-700 pl-2">
-              Direct Home Rentals
-            </span>
-          </Link>
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#EBEBEB] px-4 md:px-8 lg:px-12 py-3 transition-colors">
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
+          
+          {/* 1. Left: Brand Logo (Airbnb & Housing.com Inspired) */}
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-9 h-9 rounded-xl bg-[#FF385C] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+                <Icon name="home_work" size={20} className="text-white" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-sans font-extrabold text-xl md:text-[22px] tracking-tight text-[#222222] leading-none">
+                  Ghar<span className="text-[#FF385C]">.</span>
+                </span>
+                <span className="text-[10px] font-bold text-forest-700 uppercase tracking-wider mt-0.5 hidden sm:inline">
+                  Zero Brokerage
+                </span>
+              </div>
+            </Link>
 
-          {/* Dynamic Search Page Pill */}
-          {isSearchPage && (
-            <div className="hidden sm:flex items-center gap-1.5 bg-mitti-100 dark:bg-mitti-800 px-3 py-1 rounded-full text-[11px] font-semibold text-mitti-700 dark:text-mitti-200">
-              <span className="tabular-nums">
-                {propertiesCount.toLocaleString()} {propertiesCount === 1 ? "listing" : "listings"} in {displayCityName}
+            {/* Dynamic Search Page Filter Pill */}
+            {isSearchPage && (
+              <div className="hidden sm:flex items-center gap-1.5 bg-[#F7F7F7] border border-[#EBEBEB] px-3 py-1 rounded-full text-xs font-semibold text-[#222222]">
+                <span className="tabular-nums">
+                  {propertiesCount.toLocaleString()} {propertiesCount === 1 ? "home" : "homes"} in {displayCityName}
+                </span>
+                <button
+                  onClick={clearCityFilter}
+                  className="hover:text-[#FF385C] transition-colors p-0.5 rounded-full hover:bg-[#EBEBEB]"
+                  title="Clear filter"
+                  aria-label="Clear filter"
+                >
+                  <Icon name="close" size={13} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 2. Center: Iconic Airbnb Floating Search Pill (Desktop) */}
+          {!isSearchPage && (
+            <Link
+              href="/search"
+              className="hidden md:flex items-center divide-x divide-[#EBEBEB] border border-[#DDDDDD] hover:shadow-md rounded-full py-1.5 pl-5 pr-2 shadow-[0_1px_2px_rgba(0,0,0,0.08)] transition-all group cursor-pointer bg-white"
+            >
+              <span className="text-xs font-bold text-[#222222] pr-3.5">
+                Uttarakhand
               </span>
-              <button
-                onClick={clearCityFilter}
-                className="hover:text-terracotta-600 transition-colors flex items-center justify-center p-0.5 rounded-full hover:bg-mitti-200 dark:hover:bg-mitti-700 ml-0.5"
-                title="Clear filter"
-                aria-label="Clear filter"
-              >
-                <Icon name="close" size={13} />
-              </button>
-            </div>
+              <span className="text-xs font-bold text-[#222222] px-3.5">
+                Any Budget
+              </span>
+              <span className="text-xs font-medium text-[#717171] pl-3.5 flex items-center gap-2.5">
+                <span>Direct Owner</span>
+                <span className="w-8 h-8 rounded-full bg-[#FF385C] group-hover:bg-[#E00B41] flex items-center justify-center text-white transition-colors shrink-0">
+                  <Icon name="search" size={14} className="text-white" />
+                </span>
+              </span>
+            </Link>
           )}
-        </div>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden lg:flex items-center space-x-7 text-[13px] font-semibold text-mitti-600 dark:text-mitti-300">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href || (link.href !== "/" && pathname?.startsWith(link.href.split("?")[0]));
-            return (
-              <Link
-                key={link.label}
-                href={link.href}
-                className={`hover:text-mitti-900 dark:hover:text-white transition-colors pb-0.5 ${
-                  isActive ? "text-terracotta-700 dark:text-terracotta-400 border-b-2 border-terracotta-600 font-bold" : ""
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </nav>
+          {/* 3. Right: List Property & User Dropdown (Airbnb Pill Style) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/post-property"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-[#222222] hover:bg-[#F7F7F7] px-3.5 py-2 rounded-full transition-colors"
+            >
+              <span>List your property</span>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-forest-100 text-forest-700 px-2 py-0.5 rounded-full">
+                Free
+              </span>
+            </Link>
 
-        {/* Desktop Actions */}
-        <div className="hidden lg:flex items-center space-x-3">
-          <Link
-            href="/post-property"
-            className="flex items-center gap-1.5 text-xs font-semibold text-mitti-800 dark:text-mitti-200 border border-mitti-300 dark:border-mitti-700 hover:bg-mitti-100 dark:hover:bg-mitti-800 px-3.5 py-2 rounded-btn transition-colors"
-          >
-            <Icon name="add_home" size={16} className="text-terracotta-600" />
-            <span>List Property</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-forest-100 text-forest-700 px-1.5 py-0.2 rounded-full">
-              Free
-            </span>
-          </Link>
-
-          {user && user.role !== "GUEST" ? (
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard"
-                className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-4 py-2 rounded-btn text-xs font-bold shadow-sm transition-all duration-200 active:scale-[0.98]"
-              >
-                Dashboard
-              </Link>
+            {/* User Menu Pill */}
+            <div ref={dropdownRef} className="relative">
               <button
-                onClick={() => {
-                  logout();
-                  showToast("Logged out successfully", "info");
-                }}
-                className="text-xs font-medium text-mitti-500 hover:text-mitti-900 dark:hover:text-white transition-colors"
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2.5 border border-[#DDDDDD] hover:shadow-md rounded-full py-1.5 px-3 transition-all bg-white"
+                aria-label="User navigation"
               >
-                Log Out
+                <Icon name="menu" size={17} className="text-[#222222]" />
+                {user && user.role !== "GUEST" ? (
+                  <div className="w-7 h-7 rounded-full bg-[#222222] text-white flex items-center justify-center text-xs font-bold">
+                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-[#717171] text-white flex items-center justify-center">
+                    <Icon name="person" size={18} className="text-white" />
+                  </div>
+                )}
               </button>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Link
-                href="/login"
-                className="text-xs font-semibold text-mitti-700 dark:text-mitti-300 hover:text-mitti-900 dark:hover:text-white transition-colors px-3 py-2"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/signup"
-                className="bg-terracotta-600 hover:bg-terracotta-700 text-white px-4 py-2 rounded-btn text-xs font-bold shadow-sm transition-all duration-200 active:scale-[0.98]"
-              >
-                Join Free
-              </Link>
-            </div>
-          )}
-        </div>
 
-        {/* Mobile Menu Icon */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2 text-mitti-800 dark:text-mitti-100 hover:bg-mitti-100 dark:hover:bg-mitti-800 rounded-lg transition-colors"
-          aria-label="Menu"
-        >
-          <Icon name={mobileMenuOpen ? "close" : "menu"} size={22} />
-        </button>
+              {/* Dropdown Menu */}
+              {userDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-[#EBEBEB] py-2 z-50 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-150">
+                  {user && user.role !== "GUEST" ? (
+                    <>
+                      <div className="px-4 py-3 border-b border-[#EBEBEB]">
+                        <p className="font-bold text-sm text-[#222222] truncate">{user.name || "User"}</p>
+                        <p className="text-[#717171] text-[11px] truncate">{user.email || user.phone}</p>
+                      </div>
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#F7F7F7] text-[#222222]"
+                      >
+                        <Icon name="dashboard" size={16} className="text-[#717171]" />
+                        <span>Dashboard</span>
+                      </Link>
+                      <Link
+                        href="/favorites"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#F7F7F7] text-[#222222]"
+                      >
+                        <Icon name="favorite" size={16} className="text-[#FF385C]" />
+                        <span>Saved Properties</span>
+                      </Link>
+                      <Link
+                        href="/post-property"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 hover:bg-[#F7F7F7] text-[#222222]"
+                      >
+                        <Icon name="add_home" size={16} className="text-forest-600" />
+                        <span>Post a Property (Free)</span>
+                      </Link>
+                      <div className="my-1 border-t border-[#EBEBEB]" />
+                      <button
+                        onClick={() => {
+                          logout();
+                          setUserDropdownOpen(false);
+                          showToast("Logged out successfully", "info");
+                        }}
+                        className="flex items-center gap-2.5 w-full text-left px-4 py-2.5 hover:bg-[#F7F7F7] text-[#717171]"
+                      >
+                        <Icon name="logout" size={16} />
+                        <span>Log Out</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/signup"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 hover:bg-[#F7F7F7] font-bold text-[#222222]"
+                      >
+                        <span>Sign Up</span>
+                        <span className="text-[10px] font-extrabold bg-[#FF385C] text-white px-2 py-0.5 rounded-full ml-auto">
+                          New
+                        </span>
+                      </Link>
+                      <Link
+                        href="/login"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="block px-4 py-2.5 hover:bg-[#F7F7F7] text-[#717171]"
+                      >
+                        Log In
+                      </Link>
+                      <div className="my-1 border-t border-[#EBEBEB]" />
+                      <Link
+                        href="/post-property"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="block px-4 py-2.5 hover:bg-[#F7F7F7] text-[#222222]"
+                      >
+                        List your property
+                      </Link>
+                      <Link
+                        href="/faq"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="block px-4 py-2.5 hover:bg-[#F7F7F7] text-[#717171]"
+                      >
+                        Help Centre &amp; FAQs
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Icon (Drawer Trigger) */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2 text-[#222222] hover:bg-[#F7F7F7] rounded-full transition-colors"
+              aria-label="Open mobile menu"
+            >
+              <Icon name="menu" size={20} />
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-modal lg:hidden flex justify-end">
+        <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
           <div
-            className="fixed inset-0 bg-mitti-950/50 backdrop-blur-sm transition-opacity duration-300"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
 
-          <div className="relative w-80 max-w-[85vw] h-full bg-cream dark:bg-mitti-900 p-6 shadow-e3 flex flex-col justify-between overflow-y-auto z-modal">
+          <div className="relative w-80 max-w-[85vw] h-full bg-white p-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-50">
             <div>
-              <div className="flex items-center justify-between pb-5 border-b border-mitti-200 dark:border-mitti-800">
-                <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-                  <span className="font-display font-extrabold text-xl text-mitti-950 dark:text-cream">
-                    Ghar<span className="text-terracotta-600">.</span>
+              <div className="flex items-center justify-between pb-5 border-b border-[#EBEBEB]">
+                <Link href="/" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#FF385C] flex items-center justify-center text-white">
+                    <Icon name="home_work" size={18} className="text-white" />
+                  </div>
+                  <span className="font-sans font-extrabold text-xl text-[#222222]">
+                    Ghar<span className="text-[#FF385C]">.</span>
                   </span>
                 </Link>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-1.5 rounded-lg text-mitti-600 hover:text-mitti-900 hover:bg-mitti-100 dark:hover:bg-mitti-800 transition-colors"
+                  className="p-1.5 rounded-full text-[#717171] hover:text-[#222222] hover:bg-[#F7F7F7]"
                 >
                   <Icon name="close" size={20} />
                 </button>
               </div>
 
-              <nav className="mt-6 space-y-1 flex flex-col">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`block py-3 px-3.5 rounded-lg text-sm font-semibold transition-colors ${
-                      pathname === link.href
-                        ? "bg-mitti-200/70 dark:bg-mitti-800 text-terracotta-700 dark:text-terracotta-400 font-bold"
-                        : "text-mitti-700 dark:text-mitti-200 hover:bg-mitti-100 dark:hover:bg-mitti-800"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-
-              <div className="mt-6 pt-6 border-t border-mitti-200 dark:border-mitti-800">
+              <nav className="mt-6 space-y-1.5 flex flex-col text-sm font-semibold text-[#222222]">
+                <Link
+                  href="/search"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-[#F7F7F7]"
+                >
+                  <Icon name="search" size={18} className="text-[#FF385C]" />
+                  <span>Find Rental Homes</span>
+                </Link>
+                <Link
+                  href="/search?gender=FAMILY"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-[#F7F7F7]"
+                >
+                  <Icon name="family_restroom" size={18} className="text-[#717171]" />
+                  <span>Family &amp; Couple Flats</span>
+                </Link>
+                <Link
+                  href="/favorites"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-[#F7F7F7]"
+                >
+                  <Icon name="favorite" size={18} className="text-[#FF385C]" />
+                  <span>Saved Properties</span>
+                </Link>
                 <Link
                   href="/post-property"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-center gap-2 bg-terracotta-600 hover:bg-terracotta-700 text-white py-3 rounded-btn text-sm font-bold shadow-sm transition-all"
+                  className="flex items-center gap-3 py-3 px-3.5 rounded-xl bg-forest-50 text-forest-700 font-bold"
                 >
-                  <Icon name="add_home" size={18} className="text-white" />
-                  <span>List Your Property — Free</span>
+                  <Icon name="add_home" size={18} className="text-forest-600" />
+                  <span>List Property Free</span>
                 </Link>
-              </div>
+                <Link
+                  href="/pricing"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-[#F7F7F7]"
+                >
+                  <Icon name="payments" size={18} className="text-[#717171]" />
+                  <span>Pricing &amp; Services</span>
+                </Link>
+                <Link
+                  href="/safety-tips"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-[#F7F7F7]"
+                >
+                  <Icon name="verified_user" size={18} className="text-forest-600" />
+                  <span>Aadhaar Verification</span>
+                </Link>
+                <Link
+                  href="/contact"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 py-3 px-3.5 rounded-xl hover:bg-[#F7F7F7]"
+                >
+                  <Icon name="support_agent" size={18} className="text-[#717171]" />
+                  <span>Contact &amp; WhatsApp Support</span>
+                </Link>
+              </nav>
             </div>
 
-            <div className="pt-6 border-t border-mitti-200 dark:border-mitti-800 space-y-2">
+            <div className="pt-6 border-t border-[#EBEBEB]">
               {user && user.role !== "GUEST" ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center bg-mitti-900 dark:bg-mitti-100 text-white dark:text-mitti-900 py-2.5 rounded-btn text-xs font-bold"
-                  >
-                    Dashboard
-                  </Link>
+                <div className="space-y-3">
+                  <div className="text-xs">
+                    <p className="font-bold text-[#222222]">{user.name}</p>
+                    <p className="text-[#717171]">{user.email || user.phone}</p>
+                  </div>
                   <button
                     onClick={() => {
                       logout();
                       setMobileMenuOpen(false);
                       showToast("Logged out successfully", "info");
                     }}
-                    className="w-full text-center text-xs font-medium text-mitti-500 hover:text-mitti-900 py-2"
+                    className="w-full py-2.5 text-center text-xs font-bold text-[#717171] bg-[#F7F7F7] rounded-xl"
                   >
                     Log Out
                   </button>
-                </>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center text-xs font-semibold text-mitti-800 dark:text-mitti-200 py-2.5 rounded-btn border border-mitti-300 dark:border-mitti-700"
+                    className="py-2.5 text-center text-xs font-bold text-[#222222] border border-[#EBEBEB] rounded-xl hover:bg-[#F7F7F7]"
                   >
-                    Sign In
+                    Log In
                   </Link>
                   <Link
                     href="/signup"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center bg-terracotta-600 text-white py-2.5 rounded-btn text-xs font-bold"
+                    className="py-2.5 text-center text-xs font-bold text-white bg-[#FF385C] rounded-xl shadow-sm"
                   >
-                    Join Free
+                    Sign Up
                   </Link>
                 </div>
               )}
