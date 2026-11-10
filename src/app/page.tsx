@@ -135,24 +135,27 @@ const HOW_IT_WORKS_STEPS = [
   },
 ];
 
-const RESIDENT_STORIES = [
+const PLATFORM_GUARANTEES = [
   {
-    quote: "Brokers in Jakhan were asking ₹9,000 just to show flats and 15 days rent as commission. On Ghar Foundation, I spoke directly to the uncle who owns the 2 BHK floor and saved ₹18,000 on Day 1.",
-    name: "Ankit Rawat",
-    role: "Software Engineer • Rented 2 BHK on Sahastradhara Road",
-    saved: "Saved ₹18,000 Brokerage",
+    icon: "verified_user",
+    title: "100% Direct Owner Listings",
+    desc: "Every listing is posted directly by the homeowner or building caretaker. We strictly prohibit unauthorized middleman commissions and broker fees.",
+    tag: "Zero Brokerage",
+    highlight: "₹0 Commission Guarantee",
   },
   {
-    quote: "As a retired army officer living in Vasant Vihar, I only wanted verified family tenants without dealing with pushy local agents. My ground floor was rented within 4 days to a wonderful bank manager's family.",
-    name: "Col. R.S. Negi (Retd.)",
-    role: "Homeowner • Listed 2 BHK Independent Floor in Dehradun",
-    saved: "Aadhaar KYC Verified Tenant",
+    icon: "local_police",
+    title: "Uttarakhand Legal Compliance",
+    desc: "Official Uttarakhand Police tenant verification templates and certified 11-month rental agreement drafts pre-filled right from your dashboard.",
+    tag: "Mandatory Clearance",
+    highlight: "Police Thana Ready",
   },
   {
-    quote: "Moving from Delhi to Rishikesh for remote work was stressful until I found a furnished studio in Tapovan here. Exact photos, direct WhatsApp with the owner, and digital lease signing.",
-    name: "Megha Joshi",
-    role: "Product Designer • Rented Studio in Tapovan, Rishikesh",
-    saved: "Saved ₹12,500 Brokerage",
+    icon: "landscape",
+    title: "Hill-Aware Foothill Filters",
+    desc: "Search by student campus proximity (UPES Bidholi / Graphic Era / DIT), continuous water supply schedules, vehicle road slope, and power backup.",
+    tag: "Hyperlocal Uttarakhand",
+    highlight: "Verified Hill Amenities",
   },
 ];
 
@@ -799,47 +802,44 @@ export default function HomePage() {
       </section>
 
       {/* ===================================================================== */}
-      {/* 7. RESIDENT & HOMEOWNER STORIES (SOCIAL PROOF)                        */}
+      {/* 7. PLATFORM COMMITMENTS & LOCAL GUARANTEES (TRUTHFUL VALUE)           */}
       {/* ===================================================================== */}
       <section className="py-9 sm:py-12 bg-white border-b border-[#EBEBEB]">
         <div className="max-w-[1320px] mx-auto px-4 sm:px-8 lg:px-12">
           <div className="max-w-2xl mb-6">
-            <span className="text-[11px] font-bold text-[#008A05] uppercase tracking-wider">Trusted Across Uttarakhand</span>
+            <span className="text-[11px] font-bold text-[#FF385C] uppercase tracking-wider">Our Platform Commitments</span>
             <h2 className="font-sans font-extrabold text-2xl sm:text-3xl text-[#222222] mt-1">
-              Loved by Tenants &amp; Homeowners in Dehradun &amp; Rishikesh
+              Built Specifically for Uttarakhand Renters &amp; Owners
             </h2>
+            <p className="text-xs sm:text-sm text-[#717171] mt-1">
+              No generic national directory fluff. Designed from the ground up for Dehradun, Rishikesh, and the foothills.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {RESIDENT_STORIES.map((story) => (
+            {PLATFORM_GUARANTEES.map((item) => (
               <div
-                key={story.name}
-                className="bg-[#F7F7F7] rounded-2xl p-6 border border-[#EBEBEB] flex flex-col justify-between"
+                key={item.title}
+                className="bg-[#F7F7F7] hover:bg-white transition-colors rounded-2xl p-6 border border-[#EBEBEB] shadow-sm flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-0.5 text-[#FF385C]">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Icon key={s} name="star" size={15} fill className="text-[#FF385C]" />
-                      ))}
+                    <div className="w-10 h-10 rounded-xl bg-white border border-[#EBEBEB] flex items-center justify-center text-[#FF385C]">
+                      <Icon name={item.icon} size={22} />
                     </div>
                     <span className="text-[11px] font-bold text-[#008A05] bg-[#E8F5E9] border border-[#C8E6C9] px-2.5 py-0.5 rounded-full">
-                      {story.saved}
+                      {item.tag}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-[#222222] leading-relaxed font-medium">
-                    &ldquo;{story.quote}&rdquo;
+                  <h3 className="font-bold text-base text-[#222222] mb-1.5">{item.title}</h3>
+                  <p className="text-xs sm:text-sm text-[#717171] leading-relaxed">
+                    {item.desc}
                   </p>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-[#EBEBEB] flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#222222] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                    {story.name.charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-[#222222] truncate">{story.name}</p>
-                    <p className="text-[11px] text-[#717171] truncate">{story.role}</p>
-                  </div>
+                <div className="mt-5 pt-4 border-t border-[#EBEBEB] flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#222222]">{item.highlight}</span>
+                  <Icon name="verified" size={16} className="text-[#008A05]" fill />
                 </div>
               </div>
             ))}

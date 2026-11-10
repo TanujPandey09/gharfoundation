@@ -3,6 +3,7 @@ import { requireAuth, ensureUserInDb } from "@/lib/auth";
 import { CreatePropertySchema } from "@/lib/validations/property";
 import { getProperties } from "@/lib/services/properties";
 import { dispatchSystemNotification } from "@/lib/services/notifications";
+import { checkRateLimit } from "@/lib/rate-limit";
 import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
@@ -25,6 +26,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAuth();
+
+    // Rate limiting: Max 10 property posts per hour per user
+    const rl = await checkRateLimit(`prop_post:${userId}`, 10, 3600);
+    if (!rl.success) {
+      return NextResponse.json(
+        { success: false, error: { message: "Property listing limit reached. You can post up to 10 listings per hour." } },
+        { status: 429 }
+      );
+    }
+
     const user = await ensureUserInDb(userId);
 
     if (!["OWNER", "BROKER", "ADMIN"].includes(user.role)) {

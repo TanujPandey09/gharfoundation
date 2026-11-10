@@ -6,6 +6,7 @@ import {
   verifyOtpChallenge,
   createSignedSession,
 } from "@/lib/server-auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,7 +34,21 @@ export async function POST(req: NextRequest) {
     // 1. SEND OTP ACTION
     // ─────────────────────────────────────────────────────────────
     if (action === "SEND") {
-      // Cooldown check (prevent rapid automated spam)
+      // Rate limiting: Max 5 OTP requests per 10 minutes per IP/phone
+      const clientIp = getClientIp(req);
+      const [ipLimit, phoneLimit] = await Promise.all([
+        checkRateLimit(`otp_send_ip:${clientIp}`, 5, 600),
+        checkRateLimit(`otp_send_phone:${phone}`, 5, 600),
+      ]);
+
+      if (!ipLimit.success || !phoneLimit.success) {
+        return NextResponse.json(
+          { error: "Too many verification requests. Please wait 10 minutes before trying again." },
+          { status: 429 }
+        );
+      }
+
+      // Cooldown check (prevent rapid automated spam within 30s)
       const lastSentTime = req.cookies.get("ghar_otp_cd")?.value;
       if (lastSentTime) {
         const elapsed = Date.now() - Number(lastSentTime);
@@ -89,6 +104,16 @@ export async function POST(req: NextRequest) {
     // 2. VERIFY OTP ACTION
     // ─────────────────────────────────────────────────────────────
     if (action === "VERIFY") {
+      // Rate limiting: Max 10 verification attempts per 10 minutes per IP/phone
+      const clientIp = getClientIp(req);
+      const verifyLimit = await checkRateLimit(`otp_verify:${phone}:${clientIp}`, 10, 600);
+      if (!verifyLimit.success) {
+        return NextResponse.json(
+          { error: "Too many verification attempts. Please wait 10 minutes before trying again." },
+          { status: 429 }
+        );
+      }
+
       if (!code || String(code).trim().length !== 6) {
         return NextResponse.json(
           { error: "Please enter the complete 6-digit OTP code." },

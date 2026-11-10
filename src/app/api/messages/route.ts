@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { dispatchSystemNotification } from "@/lib/services/notifications";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
  * GET /api/messages
@@ -40,6 +41,16 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAuth();
+
+    // Rate limiting: Max 30 messages per minute per user
+    const rl = await checkRateLimit(`msg_send:${userId}`, 30, 60);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "You are sending messages too quickly. Please wait a moment." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
 
     if (!body.receiverId || !body.content) {

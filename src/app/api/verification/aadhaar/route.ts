@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth, ensureUserInDb } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/verification/aadhaar
- * Submit Aadhaar e-KYC verification. Stores masked Aadhaar and marks user as verified.
- * Body: { aadhaarNumber, fullName, method: "OTP" | "UPLOAD", maskedAadhaar }
+ * Submit Aadhaar identity document screening. Stores masked Aadhaar and submits for review.
+ * Body: { aadhaarNumber, fullName, method: "UPLOAD", maskedAadhaar }
  */
 export async function POST(request: NextRequest) {
   try {
     const userId = await requireAuth();
+
+    // Rate limiting: Max 5 submissions per hour per user
+    const rl = await checkRateLimit(`kyc_submit:${userId}`, 5, 3600);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many document submissions. Please wait before submitting again." },
+        { status: 429 }
+      );
+    }
+
     await ensureUserInDb(userId);
 
     const body = await request.json();

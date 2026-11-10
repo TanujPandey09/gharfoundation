@@ -117,8 +117,77 @@ export default function DocumentsTab() {
     showToast("Uttarakhand Police form generated and downloaded successfully!", "success");
   };
 
-  const handleDownloadAgreement = (title: string) => {
-    showToast(`Downloading rental agreement for ${title}...`, "info");
+  const handleDownloadAgreement = (title?: string) => {
+    const propertyTitle = title || "Uttarakhand Residential Rental Unit";
+    const dateStr = new Date().toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    const content = [
+      "=====================================================================",
+      "               11-MONTH RESIDENTIAL LEASE AGREEMENT DRAFT             ",
+      "        (Compliant with Indian Registration Act & Tenancy Norms)      ",
+      "=====================================================================",
+      "",
+      `This AGREEMENT is executed on this ${dateStr} at Dehradun, Uttarakhand, by and between:`,
+      "",
+      "1. LANDLORD / LESSOR (मकान मालिक):",
+      "   Name         : " + (user?.name || "___________________________________________"),
+      "   Mobile Phone : " + (user?.phone || "___________________________________________"),
+      "   Address      : ___________________________________________________________",
+      "   (Hereinafter called the 'FIRST PARTY' / Lessor)",
+      "",
+      "2. TENANT / LESSEE (किरायेदार):",
+      "   Name         : ___________________________________________",
+      "   Aadhaar/ID   : " + (aadhaarData?.maskedAadhaar || "XXXX XXXX ••••"),
+      "   Mobile Phone : ___________________________________________",
+      "   Permanent Add: ___________________________________________________________",
+      "   (Hereinafter called the 'SECOND PARTY' / Lessee)",
+      "",
+      "3. PREMISES DETAILS (किराये की संपत्ति):",
+      `   Property Name: ${propertyTitle}`,
+      "   Address      : Dehradun / Rishikesh, Uttarakhand, India",
+      "   Premises Use : Strictly for quiet, private RESIDENTIAL accommodation only.",
+      "",
+      "4. KEY COMMERCIAL TERMS (किराया एवं धरोहर राशि):",
+      "   a. Monthly Rent     : Rs. _________/- (Rupees ____________________ only),",
+      "                         payable on or before the 7th of each English calendar month.",
+      "   b. Security Deposit : Rs. _________/- (Refundable upon vacating after deduction",
+      "                         of unpaid bills/damages, within 15 days of key handover).",
+      "   c. Agreement Period : Exactly 11 (Eleven) Months commencing from ____________",
+      "                         to ____________ (extendable with mutual written consent).",
+      "   d. Lock-in Period   : 1 Month from the commencement date.",
+      "   e. Notice Period    : 1 (One) Calendar Month notice by either party prior to vacation.",
+      "",
+      "5. STATUTORY COVENANTS & UTTARAKHAND POLICE CLEARANCE:",
+      "   a. Police Verification: Both parties undertake to complete Uttarakhand Police",
+      "      tenant verification within 7 days of occupancy as mandated by Uttarakhand state laws.",
+      "   b. Utility Charges: Electricity and Water charges shall be borne by the Lessee",
+      "      as per individual meter reading or mutual proportionate ratio.",
+      "   c. Prohibited Uses: Subletting, commercial enterprise, or hazardous activities",
+      "      are strictly prohibited on the said premises.",
+      "",
+      "IN WITNESS WHEREOF, both parties set their hands on the day, month, and year above written.",
+      "",
+      "________________________                    ________________________",
+      "FIRST PARTY (LANDLORD)                      SECOND PARTY (TENANT)",
+      "",
+      "Witness 1: ___________________               Witness 2: ___________________",
+      "Phone/ID:  ___________________               Phone/ID:  ___________________",
+      "=====================================================================",
+      "Generated via Ghar Foundation Legal & KYC Center • Zero Brokerage Network",
+    ].join("\n");
+
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `11-Month-Rental-Agreement-Draft.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("11-Month Rental Agreement draft downloaded successfully!", "success");
   };
 
   return (
@@ -304,14 +373,25 @@ export default function DocumentsTab() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={handleDownloadPoliceForm}
-            className="px-4 py-2.5 border border-[#222222] hover:bg-[#F7F7F7] text-[#222222] font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5"
-          >
-            <Icon name="download" size={16} />
-            <span>Download Police Form PDF</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <a
+              href="https://uttarakhandpolice.uk.gov.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2.5 bg-[#F7F7F7] hover:bg-[#EBEBEB] text-[#222222] font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 border border-[#DDDDDD]"
+            >
+              <Icon name="open_in_new" size={15} />
+              <span>Official Police Portal</span>
+            </a>
+            <button
+              type="button"
+              onClick={handleDownloadPoliceForm}
+              className="px-4 py-2.5 bg-[#222222] hover:bg-black text-white font-bold text-xs rounded-xl transition-colors flex items-center gap-1.5 shadow-sm"
+            >
+              <Icon name="download" size={16} />
+              <span>Download Police Form</span>
+            </button>
+          </div>
         </div>
 
         {/* 3 Step Process Guide */}
@@ -367,11 +447,11 @@ export default function DocumentsTab() {
 
           <button
             type="button"
-            onClick={() => showToast("Opening digital agreement draft studio...", "info")}
+            onClick={() => handleDownloadAgreement()}
             className="px-4 py-2.5 bg-[#222222] hover:bg-black text-white font-bold text-xs rounded-xl shadow-sm transition-transform active:scale-95 flex items-center gap-1.5"
           >
-            <Icon name="add" size={16} />
-            <span>Draft New Agreement</span>
+            <Icon name="download" size={16} />
+            <span>Draft Standard Agreement</span>
           </button>
         </div>
 
@@ -420,10 +500,10 @@ export default function DocumentsTab() {
               </p>
               <button
                 type="button"
-                onClick={() => showToast("Opening template library...", "info")}
+                onClick={() => handleDownloadAgreement()}
                 className="text-xs font-bold text-[#FF385C] hover:underline"
               >
-                Browse Standard Uttarakhand Agreement Template →
+                Download Standard Uttarakhand Agreement Template →
               </button>
             </div>
           )}
