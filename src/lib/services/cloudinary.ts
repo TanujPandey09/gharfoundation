@@ -64,9 +64,15 @@ export async function compressImageClient(file: File): Promise<string> {
  */
 export async function uploadImage(fileBase64: string): Promise<string> {
   // 1. Primary: ImageKit.io Upload API
-  const imagekitPrivateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-  if (imagekitPrivateKey && imagekitPrivateKey !== "mock-key") {
+  const rawKey = process.env.IMAGEKIT_PRIVATE_KEY?.trim().replace(/^["']|["']$/g, "");
+  if (rawKey && rawKey !== "mock-key") {
     try {
+      // Normalize private key (ImageKit keys end with '=' which frequently gets omitted during copy-paste)
+      let imagekitPrivateKey = rawKey;
+      if (imagekitPrivateKey.startsWith("private_") && !imagekitPrivateKey.endsWith("=")) {
+        imagekitPrivateKey = `${imagekitPrivateKey}=`;
+      }
+
       const formData = new FormData();
       formData.append("file", fileBase64);
       formData.append("fileName", `ghar_${Date.now()}.jpg`);
