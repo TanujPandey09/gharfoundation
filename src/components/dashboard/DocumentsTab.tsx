@@ -516,13 +516,26 @@ export default function DocumentsTab() {
         onClose={() => {
           setIsAadhaarModalOpen(false);
         }}
-        onSuccess={() => {
-          setAadhaarData({
-            verified: true,
-            maskedAadhaar: "XXXX XXXX ••••",
-            name: user?.name || "Verified User",
-            verifiedAt: new Date().toISOString(),
-          });
+        onSuccess={async () => {
+          try {
+            const res = await fetch("/api/verification/aadhaar");
+            if (res.ok) {
+              const data = await res.json();
+              setAadhaarData(data);
+            }
+            const sRes = await fetch("/api/verification/status");
+            if (sRes.ok) {
+              const sData = await sRes.json();
+              setVerificationStatus(sData);
+            }
+          } catch {
+            setAadhaarData({
+              verified: true,
+              maskedAadhaar: "XXXX XXXX ••••",
+              name: user?.name || "Verified Resident",
+              verifiedAt: new Date().toISOString(),
+            });
+          }
         }}
       />
     </div>

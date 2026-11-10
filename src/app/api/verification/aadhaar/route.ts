@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth, ensureUserInDb } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { validateAadhaarVerhoeff, maskAadhaar } from "@/lib/validations/id-verification";
 
 /**
  * POST /api/verification/aadhaar
  * Submit Aadhaar identity document screening. Stores masked Aadhaar and submits for review.
- * Body: { aadhaarNumber, fullName, method: "UPLOAD", maskedAadhaar }
+ * Body: { aadhaarNumber, fullName, method: "UPLOAD", maskedAadhaar, documentType }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -24,20 +25,29 @@ export async function POST(request: NextRequest) {
     await ensureUserInDb(userId);
 
     const body = await request.json();
-    const { aadhaarNumber, fullName, method, maskedAadhaar } = body;
+    const { aadhaarNumber, fullName, method, maskedAadhaar, documentType = "AADHAAR_CARD" } = body;
 
-    if (!maskedAadhaar) {
-      return NextResponse.json(
-        { error: "Masked Aadhaar number is required" },
-        { status: 400 }
-      );
+    // Server-side Verhoeff verification if Aadhaar
+    if (documentType === "AADHAAR_CARD" && aadhaarNumber) {
+      const clean = String(aadhaarNumber).replace(/\D/g, "");
+      if (clean.length === 12) {
+        const check = validateAadhaarVerhoeff(clean);
+        if (!check.valid) {
+          return NextResponse.json(
+            { error: check.error || "Invalid Aadhaar number checksum." },
+            { status: 400 }
+          );
+        }
+      }
     }
+
+    const secureMasked = maskedAadhaar || (aadhaarNumber ? maskAadhaar(aadhaarNumber) : "XXXX XXXX ••••");
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
         documentsVerified: true,
-        aadhaarMasked: maskedAadhaar,
+        aadhaarMasked: secureMasked,
         name: fullName || undefined,
         onboardingStatus: "COMPLETED",
       },
@@ -54,6 +64,7 @@ export async function POST(request: NextRequest) {
       documentsVerified: true,
       maskedAadhaar: user.aadhaarMasked,
       name: user.name,
+      documentType,
       message: "Identity documents submitted for verification review",
     });
   } catch (error) {

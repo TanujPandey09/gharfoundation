@@ -456,8 +456,18 @@ export const SettingsTab = ({ showToast }: any) => {
       <AadhaarVerificationModal
         isOpen={isAadhaarModalOpen}
         onClose={() => setIsAadhaarModalOpen(false)}
-        onSuccess={() => {
+        onSuccess={async () => {
           setAadhaarVerified(true);
+          try {
+            const res = await fetch("/api/verification/status");
+            if (res.ok) {
+              const data = await res.json();
+              setVerificationStatus(data);
+              setAadhaarVerified(!!data.aadhaarVerified || !!data.maskedAadhaar);
+            }
+          } catch {
+            // fallback
+          }
         }}
       />
     </div>
