@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        aadhaarVerified: true,
+        documentsVerified: true,
         aadhaarMasked: maskedAadhaar,
         name: fullName || undefined,
         onboardingStatus: "COMPLETED",
@@ -38,10 +38,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      verified: true,
+      status: "UNDER_REVIEW",
+      verified: user.aadhaarVerified,
+      documentsVerified: true,
       maskedAadhaar: user.aadhaarMasked,
       name: user.name,
-      message: "Aadhaar identity verified successfully",
+      message: "Identity documents submitted for verification review",
     });
   } catch (error) {
     if (error instanceof NextResponse) return error;

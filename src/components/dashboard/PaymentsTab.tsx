@@ -207,17 +207,22 @@ export function PaymentsTab() {
         {/* Record Rent / Token Payment Box */}
         <div className="bg-white border border-[#EBEBEB] rounded-2xl p-6 shadow-sm flex flex-col justify-between">
           <div>
-            <h3 className="text-base font-bold text-[#222222] mb-1">
-              Quick Rent / Deposit Payment & Receipt
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-bold text-[#222222]">
+                Rent Ledger &amp; Verified Rent Receipts
+              </h3>
+              <span className="bg-[#E8F5E9] text-[#008A05] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                HRA Compliant
+              </span>
+            </div>
             <p className="text-xs text-[#717171] mb-5">
-              Pay rent, token advance, or featured listing fee and generate an instant verifiable receipt.
+              Record verified direct bank transfer, UPI or cash rent payments to issue printable legal receipts.
             </p>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-[#222222] mb-1.5">
-                  Payment Purpose
+                  Receipt Purpose
                 </label>
                 <select
                   value={customPurpose}
@@ -227,7 +232,7 @@ export function PaymentsTab() {
                   <option value="Monthly Rent Payment">Monthly Rent Payment</option>
                   <option value="Refundable Security Deposit">Refundable Security Deposit</option>
                   <option value="Booking Token Advance">Booking Token Advance</option>
-                  <option value="Featured Property Boost">Featured Property Boost</option>
+                  <option value="Maintenance / Society Charges">Maintenance / Society Charges</option>
                 </select>
               </div>
 
@@ -252,9 +257,9 @@ export function PaymentsTab() {
                         purpose: customPurpose,
                       })
                     }
-                    className="bg-[#FF385C] hover:bg-[#E00B41] disabled:opacity-50 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-colors shrink-0"
+                    className="bg-[#222222] hover:bg-black disabled:opacity-50 text-white font-bold text-sm px-6 py-2.5 rounded-xl transition-colors shrink-0"
                   >
-                    {paymentMutation.isPending ? "Processing..." : "Pay & Generate Receipt"}
+                    {paymentMutation.isPending ? "Recording..." : "Record & Issue Receipt"}
                   </button>
                 </div>
               </div>
@@ -262,15 +267,23 @@ export function PaymentsTab() {
           </div>
 
           <div className="flex items-center gap-2 text-xs text-[#717171] pt-4 mt-4 border-t border-[#EBEBEB]">
-            <Icon name="lock" size={15} className="text-[#008A05]" />
-            <span>256-bit encrypted ledger • UPI, NetBanking & Cards supported</span>
+            <Icon name="verified" size={15} className="text-[#008A05]" />
+            <span>Digital Rent Ledger • Verifiable transaction IDs for HRA tax exemption</span>
           </div>
         </div>
       </div>
 
       {/* Membership Plans */}
       <div>
-        <h2 className="text-lg font-bold text-[#222222] mb-4">Membership Tiers</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-[#222222]">Membership &amp; Hosting Tiers</h2>
+            <p className="text-xs text-[#717171]">Zero commission on all leases. Upgrade for enhanced visibility.</p>
+          </div>
+          <span className="bg-[#E8F5E9] text-[#008A05] text-xs font-bold px-3 py-1 rounded-full border border-[#C8E6C9]">
+            Early Launch: Starter Plan 100% Free
+          </span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {PLANS.map((plan) => {
             const isCurrent = activePlanId === plan.id;

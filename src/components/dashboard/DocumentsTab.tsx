@@ -58,9 +58,9 @@ export default function DocumentsTab() {
         documentsVerified: statusData.checks?.find((c: any) => c.id === "documents")?.verified || false,
         allVerified: statusData.allVerified || false,
       });
-      if (statusData.checks?.find((c: any) => c.id === "aadhaar")?.verified) {
+      if (statusData.checks?.find((c: any) => c.id === "aadhaar")?.verified || statusData.maskedAadhaar) {
         setAadhaarData({
-          verified: true,
+          verified: Boolean(statusData.checks?.find((c: any) => c.id === "aadhaar")?.verified),
           maskedAadhaar: statusData.maskedAadhaar || "XXXX XXXX ••••",
           name: statusData.user?.name || user?.name || "Verified User",
           verifiedAt: new Date().toISOString(),
@@ -72,10 +72,49 @@ export default function DocumentsTab() {
   const leases = leasesData?.data || [];
 
   const handleDownloadPoliceForm = () => {
-    showToast("Generating Uttarakhand Police Tenant Verification Form...", "info");
-    setTimeout(() => {
-      showToast("Verification document downloaded. Ready for submission.", "success");
-    }, 1000);
+    showToast("Generating official Uttarakhand Police Tenant Verification document...", "info");
+    const content = [
+      "=====================================================================",
+      "           UTTARAKHAND POLICE - TENANT VERIFICATION FORM             ",
+      "             (उत्तराखंड पुलिस - किरायेदार सत्यापन प्रपत्र)              ",
+      "=====================================================================",
+      "",
+      "1. TENANT DETAILS (किरायेदार का विवरण):",
+      `   Full Name            : ${user?.name || "Resident"}`,
+      `   Contact / WhatsApp   : ${user?.phone || "+91 XXXXXXXXXX"}`,
+      `   Email Address        : ${user?.email || "N/A"}`,
+      `   Identity Proof       : Masked Government ID (${aadhaarData?.maskedAadhaar || "XXXX XXXX ••••"})`,
+      "   Permanent Address    : ___________________________________________",
+      "   Occupation / Office  : ___________________________________________",
+      "",
+      "2. RENTAL PREMISES IN UTTARAKHAND (किराये के मकान का विवरण):",
+      "   Property Locality    : Dehradun / Rishikesh / Uttarakhand Foothills",
+      "   Nearest Police Thana : ___________________________________________",
+      "   Landlord Name        : ___________________________________________",
+      "   Landlord Phone       : ___________________________________________",
+      "",
+      "3. EMERGENCY CONTACTS (दो स्थानीय/मूल संदर्भ व्यक्ति):",
+      "   Reference 1 (Name & Phone): ______________________________________",
+      "   Reference 2 (Name & Phone): ______________________________________",
+      "",
+      "4. DECLARATION (घोषणा):",
+      "   I hereby declare that all information furnished above is true to",
+      "   the best of my knowledge and belief.",
+      "",
+      "   Tenant Signature: _______________    Date: " + new Date().toLocaleDateString("en-IN"),
+      "   Landlord Signature: _____________    Thana Receipt No: ___________",
+      "=====================================================================",
+      "Generated via Ghar Foundation Tenant Screening Portal - Zero Brokerage",
+    ].join("\n");
+
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Uttarakhand-Police-Tenant-Verification-Form.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("Uttarakhand Police form generated and downloaded successfully!", "success");
   };
 
   const handleDownloadAgreement = (title: string) => {
@@ -149,17 +188,23 @@ export default function DocumentsTab() {
           <div className="flex items-start gap-4">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
               aadhaarData?.verified
-                ? "bg-forest-100 text-forest-700"
-                : "bg-rausch-100 text-[#FF385C]"
+                ? "bg-[#E8F5E9] text-[#008A05]"
+                : aadhaarData?.maskedAadhaar && aadhaarData?.maskedAadhaar !== "XXXX XXXX ••••"
+                ? "bg-blue-50 text-blue-700"
+                : "bg-amber-50 text-amber-700"
             }`}>
-              <Icon name={aadhaarData?.verified ? "verified_user" : "credit_card"} size={26} fill={aadhaarData?.verified} />
+              <Icon name={aadhaarData?.verified ? "verified_user" : "badge"} size={26} fill={aadhaarData?.verified} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-lg text-[#222222]">Aadhaar e-KYC Verification</h3>
+                <h3 className="font-bold text-lg text-[#222222]">Tenant &amp; Host Identity Screening</h3>
                 {aadhaarData?.verified ? (
-                  <span className="inline-flex items-center gap-1 bg-forest-100 text-forest-700 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                  <span className="inline-flex items-center gap-1 bg-[#E8F5E9] text-[#008A05] text-[11px] font-bold px-2.5 py-0.5 rounded-full">
                     <Icon name="check_circle" size={13} fill /> Verified
+                  </span>
+                ) : aadhaarData?.maskedAadhaar && aadhaarData?.maskedAadhaar !== "XXXX XXXX ••••" ? (
+                  <span className="bg-blue-100 text-blue-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                    Submitted (Under Review)
                   </span>
                 ) : (
                   <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
@@ -168,19 +213,19 @@ export default function DocumentsTab() {
                 )}
               </div>
               <p className="text-xs text-[#717171] mt-0.5">
-                Official Government UIDAI verification for seamless trust with landlords and local police stations.
+                Identity and masked document screening for Uttarakhand Police verification and tenancy safety.
               </p>
             </div>
           </div>
 
           <div>
-            {aadhaarData?.verified ? (
+            {aadhaarData?.verified || (aadhaarData?.maskedAadhaar && aadhaarData?.maskedAadhaar !== "XXXX XXXX ••••") ? (
               <button
                 type="button"
                 onClick={() => setIsAadhaarModalOpen(true)}
                 className="btn-cta-secondary px-4 py-2 text-xs"
               >
-                View Certificate
+                <span>{aadhaarData?.verified ? "View ID Record" : "Update Documents"}</span>
               </button>
             ) : (
               <button
@@ -189,7 +234,7 @@ export default function DocumentsTab() {
                 className="btn-cta-primary px-5 py-2.5 text-xs"
               >
                 <Icon name="security" size={16} />
-                <span>Verify Aadhaar Now</span>
+                <span>Submit ID Proof</span>
               </button>
             )}
           </div>
@@ -198,17 +243,22 @@ export default function DocumentsTab() {
         {/* Verification Details Row */}
         <div className="pt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-3.5 rounded-xl bg-[#F7F7F7] border border-[#EBEBEB]">
-            <p className="text-[11px] uppercase font-bold text-[#717171] tracking-wider">Aadhaar Status</p>
+            <p className="text-[11px] uppercase font-bold text-[#717171] tracking-wider">Verification Status</p>
             <p className="font-bold text-sm text-[#222222] mt-1 flex items-center gap-1">
               {aadhaarData?.verified ? (
                 <>
-                  <Icon name="check_circle" size={15} className="text-forest-600" fill />
-                  <span>UIDAI Identity Confirmed</span>
+                  <Icon name="check_circle" size={15} className="text-[#008A05]" fill />
+                  <span>Screening Verified</span>
+                </>
+              ) : aadhaarData?.maskedAadhaar && aadhaarData?.maskedAadhaar !== "XXXX XXXX ••••" ? (
+                <>
+                  <Icon name="schedule" size={15} className="text-blue-600" />
+                  <span>Submitted · Under Review</span>
                 </>
               ) : (
                 <>
                   <Icon name="pending" size={15} className="text-amber-600" />
-                  <span>Not verified yet</span>
+                  <span>Pending Submission</span>
                 </>
               )}
             </p>

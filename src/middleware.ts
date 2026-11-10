@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifySignedSession } from "@/lib/server-auth";
 
 // Define protected/private routes
 const isProtectedRoute = createRouteMatcher([
@@ -19,12 +20,16 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 const clerkHandler = clerkMiddleware(async (auth, req: NextRequest) => {
-  // Allow clerk_bypass in dev or authenticated mobile OTP session (ghar_phone_uid)
+  // Check for verified cryptographic mobile session token
+  const sessionCookie =
+    req.cookies.get("ghar_session")?.value ||
+    req.cookies.get("ghar_phone_uid")?.value;
+
+  const validUserId = sessionCookie ? await verifySignedSession(sessionCookie) : null;
   const isDev = process.env.NODE_ENV !== "production";
-  const hasPhoneSession = Boolean(req.cookies.get("ghar_phone_uid")?.value);
-  const isBypass = hasPhoneSession || (isDev && req.cookies.get("clerk_bypass")?.value === "true");
-  
-  if (isProtectedRoute(req) && !isBypass) {
+  const isDevBypass = isDev && req.cookies.get("clerk_bypass")?.value === "true";
+
+  if (isProtectedRoute(req) && !validUserId && !isDevBypass) {
     await auth.protect();
   }
 });

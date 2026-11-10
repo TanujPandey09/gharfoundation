@@ -19,29 +19,29 @@ const LEFT_CONTENT = {
   phone: {
     image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
     stats: [
-      { label: "Verified Rentals", value: "2,500+" },
-      { label: "Brokerage Fees", value: "₹0" }
+      { label: "Broker Commission", value: "₹0" },
+      { label: "Direct Owners", value: "100%" }
     ],
     testimonial: {
       stars: 5,
-      quote: "Found our 2 BHK apartment in Dehradun in 2 days. 100% direct owner contact and zero brokerage saved us ₹18,000!",
-      author: "Pooja Negi",
-      role: "Tenant in Rajpur Road, Dehradun",
-      avatar: "PN"
+      quote: "Direct homeowner communication across Dehradun, Rishikesh & Foothills. Zero broker commissions and transparent tenancy terms.",
+      author: "Ghar Foundation Charter",
+      role: "Uttarakhand Direct Rental Initiative",
+      avatar: "GF"
     }
   },
   otp: {
     image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
     stats: [
-      { label: "Aadhaar Verified", value: "100%" },
-      { label: "Happy Families", value: "5,000+" }
+      { label: "Police KYC Form", value: "Pre-Filled" },
+      { label: "Digital Agreement", value: "11-Month" }
     ],
     testimonial: {
       stars: 5,
-      quote: "The instant Aadhaar verification and Uttarakhand police verification support gave us total peace of mind.",
-      author: "Amit Rawat",
-      role: "Property Owner in Haldwani",
-      avatar: "AR"
+      quote: "Verified tenant screening and auto-generated Uttarakhand Police Tenant Verification forms for maximum legal compliance.",
+      author: "Legal & Safety Standard",
+      role: "Uttarakhand Tenancy Compliance",
+      avatar: "UK"
     }
   }
 };
@@ -49,7 +49,6 @@ const LEFT_CONTENT = {
 export default function AuthScreen({ initialMode = "login" }: { initialMode?: "login" | "signup" }) {
   const { isLoaded: isSignInLoaded, signIn, setActive } = useSignIn();
   const { isLoaded: isSignUpLoaded, signUp } = useSignUp();
-  const { loginMockUser } = useAuth();
 
   // Auth States
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
@@ -74,7 +73,6 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(59);
   const [useDirectPhoneOtp, setUseDirectPhoneOtp] = useState(false);
-  const [otpPreviewCode, setOtpPreviewCode] = useState<string | null>(null);
 
   // Refs for OTP input navigation
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -170,7 +168,6 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
       throw new Error(data.error || "Failed to send OTP to mobile number.");
     }
     setUseDirectPhoneOtp(true);
-    setOtpPreviewCode(data.otpPreview || "123456");
     setOtp(Array(6).fill(""));
     setTimer(59);
     setStep("otp");
@@ -237,7 +234,6 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
             phoneNumberId: (phoneFactor as any).phoneNumberId,
           });
           setUseDirectPhoneOtp(false);
-          setOtpPreviewCode(null);
           setIsSignUpMode(false);
           setTimer(59);
           setStep("otp");
@@ -256,7 +252,6 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
               await signUp.create({ phoneNumber: fullPhone });
               await signUp.preparePhoneNumberVerification({ strategy: "phone_code" });
               setUseDirectPhoneOtp(false);
-              setOtpPreviewCode(null);
               setIsSignUpMode(true);
               setTimer(59);
               setStep("otp");
@@ -1299,28 +1294,6 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
                   <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-xl text-xs font-semibold flex items-center gap-2">
                     <Icon name="error" size={16} className="shrink-0" />
                     <span>{error}</span>
-                  </div>
-                )}
-
-                {/* Instant OTP Preview Banner (When Clerk SMS is not configured for +91) */}
-                {authMethod === "phone" && useDirectPhoneOtp && otpPreviewCode && (
-                  <div className="bg-[#E8F5E9] border border-[#C8E6C9] rounded-xl p-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 text-xs text-[#222222]">
-                      <Icon name="sms" size={17} className="text-[#008A05] shrink-0" />
-                      <span>
-                        Instant Mobile OTP:{" "}
-                        <strong className="font-mono font-extrabold text-sm text-[#008A05] tracking-wider">
-                          {otpPreviewCode}
-                        </strong>
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setOtp(otpPreviewCode.split("").slice(0, 6))}
-                      className="text-[11px] font-bold bg-white border border-[#C8E6C9] text-[#008A05] hover:bg-[#008A05] hover:text-white px-2.5 py-1 rounded-lg transition-colors shrink-0"
-                    >
-                      Auto-Fill
-                    </button>
                   </div>
                 )}
 

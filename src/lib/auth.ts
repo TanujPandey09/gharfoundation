@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import prisma from "./prisma";
+import { verifySignedSession } from "./server-auth";
 
 /**
  * Get the authenticated Clerk user ID or Mobile OTP session user ID from the request context.
@@ -12,13 +13,19 @@ export async function getAuthUserId(): Promise<string | null> {
     const { userId } = await auth();
     if (userId) return userId;
   } catch {
-    // Fallback to cookie check below
+    // Fallback to signed session check below
   }
 
   try {
     const cookieStore = await cookies();
-    const phoneUid = cookieStore.get("ghar_phone_uid")?.value;
-    if (phoneUid) return phoneUid;
+    const sessionToken =
+      cookieStore.get("ghar_session")?.value ||
+      cookieStore.get("ghar_phone_uid")?.value;
+
+    if (sessionToken) {
+      const verifiedUserId = await verifySignedSession(sessionToken);
+      if (verifiedUserId) return verifiedUserId;
+    }
   } catch {
     // Ignore cookie read error outside request context
   }

@@ -122,7 +122,16 @@ export const SettingsTab = ({ showToast }: any) => {
     try {
       await updateProfile({ name, email, phone, image });
       showToast("Profile settings saved successfully!", "success");
-      setVerificationStatus((prev) => (prev ? { ...prev, allVerified: true } : null));
+      // Re-fetch genuine verification status from backend
+      try {
+        const res = await fetch("/api/verification/status");
+        if (res.ok) {
+          const data = await res.json();
+          setVerificationStatus(data);
+        }
+      } catch {
+        // Non-blocking
+      }
     } catch (err: any) {
       showToast(err.message || "Failed to save settings.", "error");
     } finally {
@@ -245,7 +254,7 @@ export const SettingsTab = ({ showToast }: any) => {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="font-bold text-sm text-[#222222]">Aadhaar e-KYC</p>
+                  <p className="font-bold text-sm text-[#222222]">Identity &amp; Aadhaar KYC</p>
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
                       aadhaarVerified
@@ -253,13 +262,13 @@ export const SettingsTab = ({ showToast }: any) => {
                         : "bg-amber-100 text-amber-800"
                     }`}
                   >
-                    {aadhaarVerified ? "Verified" : "Pending"}
+                    {aadhaarVerified ? "Verified" : "Pending Review"}
                   </span>
                 </div>
                 <p className="text-xs text-[#717171] mt-1 leading-relaxed">
                   {aadhaarVerified
-                    ? "Your UIDAI identity verification is active across all rental applications."
-                    : "Verify your Aadhaar to unlock the green trust badge for direct owners."}
+                    ? "Your identity screening is verified across all rental applications and leases."
+                    : "Submit your government ID proof for tenant screening & Uttarakhand Police verification records."}
                 </p>
               </div>
             </div>

@@ -323,8 +323,8 @@ export default function OnboardingPage() {
             {/* Bottom Stats */}
             <div className="grid grid-cols-3 gap-3 pt-4 border-t border-[#EBEBEB]/80">
               <div>
-                <p className="text-base font-extrabold text-[#222222]">2,400+</p>
-                <p className="text-[11px] text-[#717171]">Verified Homes</p>
+                <p className="text-base font-extrabold text-[#222222]">100%</p>
+                <p className="text-[11px] text-[#717171]">Direct Owners</p>
               </div>
               <div>
                 <p className="text-base font-extrabold text-[#008A05]">₹0</p>

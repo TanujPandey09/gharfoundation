@@ -134,10 +134,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const loginMockUser = useCallback((role: Role) => {
+    if (process.env.NODE_ENV === "production") {
+      console.warn("Mock user login is strictly disabled in production.");
+      return;
+    }
     const mockObj: User = {
       id: "usr-mock-" + role.toLowerCase(),
       name: `Demo ${role === "OWNER" ? "Property Owner" : "Premium Tenant"}`,
-      email: `demo-${role.toLowerCase()}@eliterent.com`,
+      email: `demo-${role.toLowerCase()}@gharfoundation.in`,
       phone: "+91 99999 99999",
       image: null,
       role: role,
@@ -148,7 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setGuestUser(mockObj);
     localStorage.setItem("ghar_guest_user", JSON.stringify(mockObj));
-    document.cookie = "clerk_bypass=true; path=/; max-age=86400";
+    document.cookie = "clerk_bypass=true; path=/; max-age=86400; SameSite=Lax";
   }, []);
 
   const logout = useCallback(() => {
@@ -161,6 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem("ghar_guest_user");
     document.cookie = "clerk_bypass=; path=/; max-age=0";
     document.cookie = "ghar_phone_uid=; path=/; max-age=0";
+    document.cookie = "ghar_session=; path=/; max-age=0";
   }, [isSignedIn, clerk]);
 
   const updateProfile = useCallback(async (data: Partial<User>) => {
