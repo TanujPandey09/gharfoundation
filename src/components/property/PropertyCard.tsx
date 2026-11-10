@@ -280,7 +280,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         <div className="grid grid-cols-2 gap-2 mt-4 pt-1">
           <a
             href={`tel:+${cleanPhone}`}
-            className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-[#222222] text-xs font-bold text-[#222222] hover:bg-[#F7F7F7] active:scale-95 transition-all"
+            className="btn-cta-secondary h-9 text-xs"
           >
             <Icon name="call" size={15} />
             <span>Call</span>
@@ -289,7 +289,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
             href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hi, I saw your listing on Ghar Foundation: ${property.title} in ${property.areaName || property.city}. Is it available?`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-xs font-bold text-white shadow-sm active:scale-95 transition-all"
+            className="btn-cta-whatsapp h-9 text-xs"
           >
             <Icon name="chat" size={15} className="text-white" />
             <span>WhatsApp</span>

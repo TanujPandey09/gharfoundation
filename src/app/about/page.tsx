@@ -8,19 +8,23 @@ export default function AboutPage() {
   return (
     <div className="bg-white text-[#222222] min-h-screen font-sans">
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 text-[#222222]">
-        <div className="relative max-w-[1200px] mx-auto px-6 md:px-12 text-center">
-          <h1 className="font-display font-extrabold text-[2rem] sm:text-[3rem] tracking-tight text-[#222222]">
-            Uttarakhand's direct rental network
+      <section className="hero-mesh-bg relative overflow-hidden pt-5 pb-7 sm:pt-8 sm:pb-10 border-b border-[#EBEBEB] text-[#222222]">
+        <div className="relative max-w-[1200px] mx-auto px-4 sm:px-8 text-center">
+          <span className="inline-flex items-center gap-1.5 bg-white/90 border border-[#C8E6C9] text-[#008A05] text-xs font-bold px-3 py-1 rounded-full mb-3">
+            <Icon name="verified" size={14} fill className="text-[#008A05]" />
+            <span>Direct Owner Rental Platform</span>
+          </span>
+          <h1 className="font-display font-extrabold text-2xl sm:text-4xl tracking-tight text-[#222222]">
+            Uttarakhand&apos;s direct rental network
           </h1>
-          <p className="mt-4 text-[#717171] max-w-2xl mx-auto text-sm sm:text-base font-light leading-relaxed">
-            Connecting tenants, homeowners, and local verified brokers across all 13 districts. Direct, transparent, and completely free of hidden brokerage.
+          <p className="mt-2.5 text-[#717171] max-w-2xl mx-auto text-xs sm:text-base leading-relaxed">
+            Connecting tenants and homeowners across all 13 districts. Direct, transparent, and completely free of hidden brokerage.
           </p>
         </div>
       </section>
 
       {/* Main Content */}
-      <section className="max-w-[1200px] mx-auto px-6 md:px-12 py-16 md:py-24 space-y-20">
+      <section className="max-w-[1200px] mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-12">
         
         {/* Our Mission */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -110,16 +114,16 @@ export default function AboutPage() {
           <p className="mt-2 text-[#717171] text-sm max-w-md mx-auto">
             Browse through hundreds of verified rooms, flats, PGs, and commercial spaces.
           </p>
-          <div className="mt-6 flex flex-wrap gap-4 justify-center">
+          <div className="mt-5 flex flex-wrap gap-3 justify-center">
             <Link 
               href="/search"
-              className="bg-[#FF385C] hover:bg-[#E00B41] text-white px-6 py-3 rounded-xl text-sm font-semibold shadow-sm transition-all active:scale-[0.98]"
+              className="btn-cta-primary px-6 py-3 text-sm"
             >
               Browse homes
             </Link>
             <Link 
               href="/post-property"
-              className="bg-[#222222] hover:bg-black text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+              className="btn-cta-secondary px-6 py-3 text-sm"
             >
               List your property
             </Link>

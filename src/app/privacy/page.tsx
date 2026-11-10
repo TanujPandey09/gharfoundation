@@ -33,21 +33,23 @@ export default function PrivacyPolicyPage() {
   ];
 
   return (
-    <div className="bg-white text-[#222222] min-h-screen font-sans py-16 md:py-24">
-      <div className="max-w-[800px] mx-auto px-6">
-        {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <div className="inline-flex items-center gap-1.5 bg-forest-50 border border-forest-200 text-forest-700 text-xs font-bold px-3 py-1 rounded-full mb-4">
-            <Icon name="verified_user" size={14} className="text-forest-600" />
+    <div className="bg-white text-[#222222] min-h-screen font-sans">
+      <div className="hero-mesh-bg border-b border-[#EBEBEB] pt-5 pb-7 sm:pt-8 sm:pb-10">
+        <div className="max-w-[800px] mx-auto px-4 sm:px-6 text-center">
+          <div className="inline-flex items-center gap-1.5 bg-white/90 border border-[#C8E6C9] text-[#008A05] text-xs font-bold px-3 py-1 rounded-full mb-3">
+            <Icon name="verified_user" size={14} className="text-[#008A05]" />
             <span>Digital Personal Data Protection (DPDP) Aligned</span>
           </div>
-          <h1 className="font-display font-extrabold text-[2.25rem] tracking-tight text-[#222222]">
+          <h1 className="font-display font-extrabold text-2xl sm:text-4xl tracking-tight text-[#222222]">
             Privacy Policy
           </h1>
-          <p className="mt-3 text-[#717171] text-sm">
+          <p className="mt-2 text-[#717171] text-xs sm:text-sm">
             Last updated: November 2026 · Ghar Foundation (Uttarakhand, India)
           </p>
         </div>
+      </div>
+
+      <div className="max-w-[800px] mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
         {/* Content Details */}
         <div className="bg-white border border-[#EBEBEB] p-8 md:p-10 rounded-3xl shadow-sm space-y-8">

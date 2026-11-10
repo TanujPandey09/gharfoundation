@@ -134,98 +134,104 @@ export const MessagesTab: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 min-h-[500px]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-slate-200 border-t-[#022c22] rounded-full animate-spin" />
-          <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Loading Workspace...</p>
+      <div className="w-full max-w-[1320px] mx-auto p-3.5 sm:p-5 text-[#222222]">
+        <div className="bg-white rounded-2xl border border-[#EBEBEB] shadow-sm h-[calc(100vh-148px)] md:h-[calc(100vh-104px)] flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-9 h-9 border-3 border-[#EBEBEB] border-t-[#FF385C] rounded-full animate-spin" />
+            <p className="text-[#717171] text-xs font-bold uppercase tracking-wider">Loading Inbox...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex overflow-hidden bg-slate-50/50 h-[calc(100vh-76px)]">
-      {/* Sidebar: Conversations List */}
-      <div className="w-[360px] bg-white border-r border-slate-100 flex flex-col shrink-0 h-full">
-        {/* Sidebar Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-slate-800 tracking-tight">Inbox</h2>
-            <p className="text-[11px] text-slate-400 font-medium mt-0.5">{conversations.length} active threads</p>
+    <div className="w-full max-w-[1320px] mx-auto p-3.5 sm:p-5 text-[#222222]">
+      <div className="bg-white rounded-2xl border border-[#EBEBEB] shadow-sm overflow-hidden flex h-[calc(100vh-148px)] md:h-[calc(100vh-104px)]">
+        {/* Sidebar: Conversations List (Full width on mobile when no thread active) */}
+        <div
+          className={`${
+            activeConversation ? "hidden md:flex" : "flex"
+          } w-full md:w-[340px] bg-white border-r border-[#EBEBEB] flex-col shrink-0 h-full`}
+        >
+          {/* Sidebar Header */}
+          <div className="hero-mesh-bg p-4 sm:p-5 border-b border-[#EBEBEB] flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF385C] block">Zero-Brokerage Inbox</span>
+              <h2 className="text-base font-extrabold text-[#222222] tracking-tight mt-0.5">Direct Messages</h2>
+              <p className="text-xs text-[#717171] font-medium mt-0.5">{conversations.length} active conversations</p>
+            </div>
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-white border border-[#C8E6C9] text-[#008A05] px-2.5 py-1 rounded-full">
+              <Icon name="verified" size={12} fill /> Direct
+            </span>
           </div>
-          <button className="text-slate-400 hover:text-slate-700 p-1.5 hover:bg-slate-50 rounded-lg transition-colors">
-            <Icon name="edit_note" size={22} />
-          </button>
-        </div>
 
         {/* Conversation Items list */}
-        <div className="flex-1 overflow-y-auto divide-y divide-slate-50">
+        <div className="flex-1 overflow-y-auto divide-y divide-[#EBEBEB]">
           {conversations.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 mt-10">
-              <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-100">
-                <Icon name="chat_bubble_outline" size={24} className="text-slate-300" />
+            <div className="p-8 text-center text-[#717171] mt-8">
+              <div className="w-12 h-12 bg-[#F7F7F7] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-[#EBEBEB]">
+                <Icon name="chat_bubble_outline" size={22} className="text-[#717171]" />
               </div>
-              <p className="text-sm font-semibold text-slate-700">No active threads</p>
-              <p className="text-xs text-slate-400 mt-1">Send a message to an owner or tenant to start chatting.</p>
+              <p className="text-sm font-bold text-[#222222]">No messages yet</p>
+              <p className="text-xs text-[#717171] mt-1 leading-relaxed">
+                Message any verified homeowner from a property page to start a direct zero-brokerage conversation.
+              </p>
             </div>
           ) : (
             conversations.map((conv) => {
               const latestMsg = conv.messages[conv.messages.length - 1];
               const isActive = activeConversationId === conv.partner.id;
-              
-              // Unread if latest message receiver is current user and last read message ID is not this latest ID
               const isUnread = latestMsg.receiverId === user.id && readStatus[conv.partner.id] !== latestMsg.id;
 
               return (
                 <button
                   key={conv.partner.id}
+                  type="button"
                   onClick={() => setActiveConversationId(conv.partner.id)}
                   className={`w-full p-4 flex items-start gap-3.5 transition-all relative text-left border-l-2 select-none outline-none ${
-                    isActive 
-                      ? 'bg-slate-50 border-l-[#022c22]' 
-                      : isUnread 
-                        ? 'bg-emerald-50/20 border-l-blue-500 hover:bg-slate-50/80' 
-                        : 'border-l-transparent hover:bg-slate-50/50'
+                    isActive
+                      ? "bg-[#F7F7F7] border-l-[#FF385C]"
+                      : isUnread
+                        ? "bg-[#FFF0F3]/40 border-l-[#FF385C] hover:bg-[#F7F7F7]"
+                        : "border-l-transparent hover:bg-[#F7F7F7]/60"
                   }`}
                 >
                   {/* Avatar */}
                   <div className="relative shrink-0">
                     {conv.partner.image ? (
-                      <img 
-                        src={conv.partner.image} 
-                        alt={conv.partner.name || "User"} 
-                        className="w-10 h-10 rounded-full object-cover border border-slate-100 shadow-sm"
+                      <img
+                        src={conv.partner.image}
+                        alt={conv.partner.name || "User"}
+                        className="w-10 h-10 rounded-full object-cover border border-[#EBEBEB]"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-[#022c22]/5 border border-slate-100 flex items-center justify-center text-[#022c22] font-bold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-[#222222] flex items-center justify-center text-white font-bold text-xs">
                         {conv.partner.name?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "U"}
                       </div>
                     )}
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#008A05] border-2 border-white rounded-full" />
                   </div>
 
                   {/* Thread details */}
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex justify-between items-baseline">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <p className={`text-[13px] truncate ${isUnread ? 'font-bold text-slate-900' : 'font-semibold text-slate-800'}`}>
-                          {conv.partner.name || "User"}
-                        </p>
-                      </div>
-                      <p className="text-[10px] text-slate-400 shrink-0 font-medium">
-                        {new Date(latestMsg.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    <div className="flex justify-between items-baseline gap-2">
+                      <p className={`text-xs sm:text-sm truncate ${isUnread ? "font-extrabold text-[#222222]" : "font-bold text-[#222222]"}`}>
+                        {conv.partner.name || "Verified User"}
+                      </p>
+                      <p className="text-[10px] text-[#717171] shrink-0 font-semibold">
+                        {new Date(latestMsg.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
                       </p>
                     </div>
 
-                    <p className={`text-xs truncate leading-relaxed ${isUnread ? 'font-bold text-slate-800' : 'text-slate-500'}`}>
+                    <p className={`text-xs truncate leading-relaxed ${isUnread ? "font-bold text-[#222222]" : "text-[#717171]"}`}>
                       {latestMsg.senderId === user.id ? "You: " : ""}
                       {latestMsg.content}
                     </p>
                   </div>
 
-                  {/* Dot status */}
                   {isUnread && (
-                    <span className="w-2 h-2 bg-emerald-600 rounded-full shrink-0 mt-2 ml-1 animate-pulse"></span>
+                    <span className="w-2 h-2 bg-[#FF385C] rounded-full shrink-0 mt-2 ml-1" />
                   )}
                 </button>
               );
@@ -235,54 +241,51 @@ export const MessagesTab: React.FC = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-[#F8FAFC] h-full relative">
+      <div className={`${activeConversation ? "flex" : "hidden md:flex"} flex-1 flex-col bg-[#F7F7F7] h-full relative`}>
         {activeConversation ? (
           <>
             {/* Chat Header */}
-            <div className="h-[76px] bg-white border-b border-slate-100 flex items-center justify-between px-6 shrink-0 z-10 shadow-sm shadow-slate-100/50">
-              <div className="flex items-center">
+            <div className="h-[64px] bg-white border-b border-[#EBEBEB] flex items-center justify-between px-4 sm:px-6 shrink-0 z-10">
+              <div className="flex items-center gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveConversationId(null)}
+                  className="md:hidden p-1.5 -ml-1 rounded-lg text-[#222222] hover:bg-[#F7F7F7]"
+                >
+                  <Icon name="arrow_back" size={20} />
+                </button>
                 {activeConversation.partner.image ? (
-                  <img 
-                    src={activeConversation.partner.image} 
-                    alt="Partner" 
-                    className="w-10 h-10 rounded-full object-cover mr-3 border border-slate-100"
+                  <img
+                    src={activeConversation.partner.image}
+                    alt="Partner"
+                    className="w-9 h-9 rounded-full object-cover border border-[#EBEBEB] shrink-0"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-[#022c22]/5 text-[#022c22] font-bold text-sm flex items-center justify-center mr-3 border border-slate-100">
+                  <div className="w-9 h-9 rounded-full bg-[#222222] text-white font-bold text-xs flex items-center justify-center shrink-0">
                     {activeConversation.partner.name?.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "U"}
                   </div>
                 )}
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <h3 className="text-sm font-bold text-slate-800">{activeConversation.partner.name || "User"}</h3>
-                    <span className="text-[9px] font-bold bg-[#022c22]/5 text-[#022c22] px-1.5 py-0.5 rounded tracking-wide uppercase">Partner</span>
+                    <h3 className="text-sm font-bold text-[#222222] truncate">{activeConversation.partner.name || "Verified User"}</h3>
+                    <span className="text-[10px] font-bold bg-[#E8F5E9] text-[#008A05] px-2 py-0.5 rounded-full">
+                      Verified
+                    </span>
                   </div>
-                  <p className="text-[11px] font-medium text-green-600 flex items-center gap-1 mt-0.5">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block"></span> Active
-                  </p>
+                  <p className="text-[11px] font-medium text-[#717171]">Direct Zero-Brokerage Chat</p>
                 </div>
-              </div>
-
-              {/* Options */}
-              <div className="flex items-center gap-2">
-                <button className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                  <Icon name="phone" size={18} />
-                </button>
-                <button className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                  <Icon name="more_vert" size={18} />
-                </button>
               </div>
             </div>
 
             {/* Chat Messages viewport */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3.5">
               {activeConversation.messages.map((msg) => {
                 const isMe = msg.senderId === user.id;
                 return (
                   <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                    <div className="flex items-start gap-2 max-w-[70%]">
+                    <div className="flex items-start gap-2 max-w-[82%] sm:max-w-[70%]">
                       {!isMe && (
-                        <div className="w-6 h-6 rounded-full bg-slate-200 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
+                        <div className="w-6 h-6 rounded-full bg-[#222222] text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
                           {activeConversation.partner.image ? (
                             <img src={activeConversation.partner.image} className="w-full h-full object-cover" alt="" />
                           ) : (
@@ -291,15 +294,17 @@ export const MessagesTab: React.FC = () => {
                         </div>
                       )}
                       <div>
-                        <div className={`rounded-2xl px-4 py-2.5 shadow-sm text-slate-800 border ${
-                          isMe 
-                            ? "bg-[#022c22] text-white border-transparent rounded-tr-none" 
-                            : "bg-white text-slate-800 border-slate-100 rounded-tl-none"
-                        }`}>
-                          <p className="text-xs leading-relaxed font-medium break-words">{msg.content}</p>
+                        <div
+                          className={`rounded-2xl px-4 py-2.5 border ${
+                            isMe
+                              ? "bg-[#222222] text-white border-[#222222] rounded-tr-sm"
+                              : "bg-white text-[#222222] border-[#EBEBEB] rounded-tl-sm"
+                          }`}
+                        >
+                          <p className="text-xs sm:text-sm leading-relaxed font-medium break-words">{msg.content}</p>
                         </div>
-                        <p className={`text-[9px] mt-1 font-semibold text-slate-400 ${isMe ? "text-right" : "text-left"}`}>
-                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <p className={`text-[10px] mt-1 font-semibold text-[#717171] ${isMe ? "text-right" : "text-left"}`}>
+                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
                     </div>
@@ -310,30 +315,30 @@ export const MessagesTab: React.FC = () => {
             </div>
 
             {/* Message Input bar */}
-            <div className="p-4 bg-white border-t border-slate-100">
-              <form onSubmit={handleSend} className="flex gap-2 items-center bg-slate-50 border border-slate-200/60 rounded-xl p-1.5 focus-within:ring-2 focus-within:ring-slate-900/10 focus-within:border-slate-400 transition-all">
-                <button type="button" className="text-slate-400 hover:text-slate-600 p-2 hover:bg-white rounded-lg transition-colors shrink-0">
-                  <Icon name="add" size={20} />
-                </button>
-                <input 
-                  type="text" 
-                  placeholder={`Send a message to ${activeConversation.partner.name || "User"}...`}
-                  className="flex-1 bg-transparent border-none px-2 py-2 text-xs text-slate-800 focus:outline-none focus:ring-0 placeholder-slate-400 font-medium"
+            <div className="p-3 sm:p-4 bg-white border-t border-[#EBEBEB]">
+              <form
+                onSubmit={handleSend}
+                className="flex gap-2 items-center bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl p-1.5 focus-within:bg-white focus-within:border-[#222222] transition-all"
+              >
+                <input
+                  type="text"
+                  placeholder={`Message ${activeConversation.partner.name || "owner"}...`}
+                  className="flex-1 min-w-0 bg-transparent border-none px-3 py-2 text-xs sm:text-sm text-[#222222] focus:outline-none placeholder-[#717171] font-medium"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   disabled={sendMessageMutation.isPending}
                 />
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={!newMessage.trim() || sendMessageMutation.isPending}
-                  className="px-4 py-2 rounded-lg bg-[#022c22] text-white flex items-center justify-center shrink-0 hover:bg-[#15345a] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm text-xs font-bold gap-1.5"
+                  className="px-4 py-2.5 rounded-lg bg-[#FF385C] hover:bg-[#E00B41] text-white flex items-center justify-center shrink-0 disabled:opacity-50 transition-all active:scale-[0.98] text-xs font-bold gap-1.5"
                 >
                   {sendMessageMutation.isPending ? (
                     <Icon name="sync" size={14} className="animate-spin" />
                   ) : (
                     <>
                       <span>Send</span>
-                      <Icon name="send" size={12} />
+                      <Icon name="send" size={13} />
                     </>
                   )}
                 </button>
@@ -341,14 +346,17 @@ export const MessagesTab: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 select-none">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 border border-slate-200/40 shadow-inner">
-              <Icon name="chat" size={28} className="text-slate-300" />
+          <div className="flex-1 flex flex-col items-center justify-center text-[#717171] select-none p-6">
+            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-3 border border-[#EBEBEB]">
+              <Icon name="chat" size={26} className="text-[#FF385C]" />
             </div>
-            <p className="text-sm font-bold text-slate-700">Select a thread</p>
-            <p className="text-xs text-slate-400 mt-1 max-w-xs text-center leading-relaxed">Choose an existing conversation from the inbox sidebar to review messages or reply.</p>
+            <p className="text-sm font-bold text-[#222222]">Select a conversation</p>
+            <p className="text-xs text-[#717171] mt-1 max-w-xs text-center leading-relaxed">
+              Choose a thread from the left to message homeowners or prospective tenants directly.
+            </p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

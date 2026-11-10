@@ -5,13 +5,13 @@ import { useAuth } from "@/lib/context/AuthContext";
 import Icon from "@/components/shared/Icon";
 import { HeaderProfileDropdown } from "@/components/dashboard/HeaderProfileDropdown";
 import { NotificationBell } from "@/components/shared/NotificationBell";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 
 const SidebarItem = ({ icon, label, isActive, href, onClick, badge }: any) => {
     const baseClass = `w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-[13px] font-bold transition-all duration-150 active:scale-[0.98] ${
         isActive
-            ? "bg-rausch-100 text-[#FF385C]"
+            ? "bg-[#FFF0F3] text-[#FF385C]"
             : "text-[#717171] hover:bg-[#F7F7F7] hover:text-[#222222]"
     }`;
 
@@ -24,7 +24,7 @@ const SidebarItem = ({ icon, label, isActive, href, onClick, badge }: any) => {
                 <span>{label}</span>
             </div>
             {badge && (
-                <span className="text-[10px] font-bold uppercase bg-forest-100 text-forest-700 px-2 py-0.2 rounded-full">
+                <span className="text-[10px] font-bold uppercase bg-[#E8F5E9] text-[#008A05] px-2 py-0.5 rounded-full">
                     {badge}
                 </span>
             )}
@@ -48,8 +48,10 @@ const SidebarItem = ({ icon, label, isActive, href, onClick, badge }: any) => {
 export default function UserAppLayout({ children }: { children: React.ReactNode }) {
     const { user, logout, toggleUserMode } = useAuth();
     const pathname = usePathname();
+    const router = useRouter();
     const displayRole = user?.role === "ADMIN" ? "ADMIN" : (user?.activeWorkspace === "HOSTING" ? "OWNER" : "RENTER");
     const [verificationPending, setVerificationPending] = useState<boolean | null>(null);
+    const [headerQuery, setHeaderQuery] = useState("");
 
     useEffect(() => {
         const checkVerification = async () => {
@@ -99,6 +101,7 @@ export default function UserAppLayout({ children }: { children: React.ReactNode 
                             <>
                                 <SidebarItem icon="grid_view" label="Overview" href="/dashboard" isActive={pathname === "/dashboard"} />
                                 <SidebarItem icon="maps_home_work" label="My Properties" href="/properties" isActive={pathname === "/properties"} />
+                                <SidebarItem icon="event" label="Tour Schedule" href="/schedule" isActive={pathname === "/schedule"} />
                                 <SidebarItem icon="verified_user" label="Police KYC & Leases" href="/documents" isActive={pathname === "/documents"} badge="Verified" />
                                 <SidebarItem icon="chat_bubble_outline" label="Messages" href="/messages" isActive={pathname === "/messages"} />
                                 <SidebarItem icon="receipt_long" label="Payments" href="/payments" isActive={pathname === "/payments"} />
@@ -117,7 +120,8 @@ export default function UserAppLayout({ children }: { children: React.ReactNode 
                     )}
                 </div>
 
-                <div className="px-3 pb-6 space-y-1">
+                <div className="px-3 pb-6 space-y-1 border-t border-[#EBEBEB] pt-3">
+                    <SidebarItem icon="travel_explore" label="Browse Marketplace" href="/search" isActive={false} />
                     <SidebarItem icon="settings" label="Settings" href="/settings" isActive={pathname === "/settings"} />
                     <SidebarItem icon="logout" label="Log Out" onClick={() => logout()} />
                 </div>
@@ -127,28 +131,48 @@ export default function UserAppLayout({ children }: { children: React.ReactNode 
             <div className="flex-1 flex flex-col h-full overflow-hidden">
                 {/* TOP HEADER */}
                 <header className="h-[64px] bg-white border-b border-[#EBEBEB] flex items-center justify-between px-4 sm:px-8 shrink-0 z-10">
-                    <div className="w-[340px] relative hidden md:block">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            router.push(headerQuery.trim() ? `/search?q=${encodeURIComponent(headerQuery.trim())}` : "/search");
+                        }}
+                        className="w-[340px] relative hidden md:block"
+                    >
                         <Icon name="search" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#717171]" />
                         <input
                             type="text"
-                            placeholder="Search properties, agreements, or tenants..."
-                            className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-full py-2 pl-10 pr-4 text-[13px] font-medium text-[#222222] placeholder-[#717171] focus:outline-none focus:border-[#FF385C] focus:bg-white transition-all"
+                            value={headerQuery}
+                            onChange={(e) => setHeaderQuery(e.target.value)}
+                            placeholder="Search localities, rooms, or flats..."
+                            className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-full py-2 pl-10 pr-4 text-[13px] font-medium text-[#222222] placeholder-[#717171] focus:outline-none focus:border-[#222222] focus:bg-white transition-all"
                         />
-                    </div>
-                    <div className="md:hidden flex items-center">
-                        <Link href="/">
+                    </form>
+                    <div className="md:hidden flex items-center gap-2">
+                        <Link href="/" className="flex items-center gap-1.5">
                             <span className="font-display font-extrabold text-xl text-[#222222]">
                                 Ghar<span className="text-[#FF385C]">.</span>
+                            </span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#F7F7F7] text-[#717171] border border-[#EBEBEB]">
+                                {displayRole === "RENTER" ? "Tenant" : "Host"}
                             </span>
                         </Link>
                     </div>
 
-                    <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                        {showPrompt && (
+                            <Link
+                                href="/settings"
+                                className="hidden lg:inline-flex items-center gap-1.5 text-xs font-bold text-[#FF385C] bg-[#FFF0F3] border border-[#FFD1D8] px-3 py-1.5 rounded-full hover:bg-[#FFD1D8]/50 transition-colors"
+                            >
+                                <Icon name="error_outline" size={14} className="text-[#FF385C]" />
+                                <span>Complete Profile</span>
+                            </Link>
+                        )}
                         <Link
                             href="/documents"
-                            className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-forest-700 bg-forest-50 border border-forest-200 px-3 py-1.5 rounded-full hover:bg-forest-100 transition-colors"
+                            className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#008A05] bg-[#E8F5E9] border border-[#C8E6C9] px-3 py-1.5 rounded-full hover:bg-[#C8E6C9]/50 transition-colors"
                         >
-                            <Icon name="verified_user" size={14} fill className="text-forest-600" />
+                            <Icon name="verified_user" size={14} fill className="text-[#008A05]" />
                             <span>Aadhaar KYC</span>
                         </Link>
                         <NotificationBell />
@@ -158,31 +182,6 @@ export default function UserAppLayout({ children }: { children: React.ReactNode 
 
                 {/* PAGE SCROLLABLE CONTAINER */}
                 <div className="flex-1 overflow-y-auto bg-[#F7F7F7]/60">
-                    {/* Verification Prompt Banner */}
-                    {showPrompt && (
-                        <div className="max-w-5xl mx-auto p-4 sm:p-6">
-                            <div className="bg-rausch-50 border border-rausch-200 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[#FF385C] flex items-center justify-center shrink-0 mt-0.5">
-                                        <Icon name="error_outline" size={20} className="text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-base text-[#222222]">Complete Your Profile</h3>
-                                        <p className="text-xs text-[#717171] mt-1">
-                                            Verify your email and add a profile picture to unlock messaging, bookings, and the trusted resident badge.
-                                        </p>
-                                    </div>
-                                </div>
-                                <Link
-                                    href="/settings"
-                                    className="px-5 py-2.5 bg-[#FF385C] hover:bg-[#E00B41] text-white text-xs font-bold rounded-xl shadow-sm transition-transform active:scale-95 whitespace-nowrap"
-                                >
-                                    Complete Now
-                                </Link>
-                            </div>
-                        </div>
-                    )}
-
                     {children}
                 </div>
 

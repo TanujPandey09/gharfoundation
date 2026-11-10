@@ -1,14 +1,29 @@
 import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import prisma from "./prisma";
 
 /**
- * Get the authenticated Clerk user ID from the request context.
+ * Get the authenticated Clerk user ID or Mobile OTP session user ID from the request context.
  * Returns the userId string, or null if not authenticated.
  */
 export async function getAuthUserId(): Promise<string | null> {
-  const { userId } = await auth();
-  return userId;
+  try {
+    const { userId } = await auth();
+    if (userId) return userId;
+  } catch {
+    // Fallback to cookie check below
+  }
+
+  try {
+    const cookieStore = await cookies();
+    const phoneUid = cookieStore.get("ghar_phone_uid")?.value;
+    if (phoneUid) return phoneUid;
+  } catch {
+    // Ignore cookie read error outside request context
+  }
+
+  return null;
 }
 
 /**
@@ -27,7 +42,7 @@ export async function requireAuth(): Promise<string> {
 }
 
 /**
- * Sync-on-read: Ensure the Clerk user exists in our Prisma database.
+ * Sync-on-read: Ensure the user exists in our Prisma database.
  * If they don't exist yet, create a minimal record.
  * Returns the Prisma User record.
  */
@@ -37,12 +52,10 @@ export async function ensureUserInDb(clerkUserId: string) {
   });
 
   if (!user) {
-    // Create a minimal user record — the frontend onboarding flow
-    // will update their name, role, and preferences later.
     user = await prisma.user.create({
       data: {
         id: clerkUserId,
-        role: "GUEST",
+        role: "RENTER",
       },
     });
   }

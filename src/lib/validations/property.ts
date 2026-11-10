@@ -56,7 +56,7 @@ export const CreatePropertySchema = z.object({
 
   // Related data
   amenities: z.array(z.string().min(1)).optional(), // array of amenity names
-  imageUrls: z.array(z.string().url()).optional(),   // array of image URLs
+  imageUrls: z.array(z.string().min(5)).optional(),   // array of image URLs or compressed data URLs
 });
 
 export type CreatePropertyInput = z.infer<typeof CreatePropertySchema>;

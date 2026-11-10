@@ -1,598 +1,606 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useToast } from "@/lib/context/ToastContext";
 import Icon from "@/components/shared/Icon";
 
+type RoleOption = "RENTER" | "OWNER" | "BOTH" | null;
+
+const UTTARAKHAND_CITIES = [
+  "Dehradun",
+  "Rishikesh",
+  "Nainital",
+  "Mussoorie",
+  "Haridwar",
+  "Haldwani",
+];
+
+const PROPERTY_TYPES = [
+  { id: "APARTMENT", label: "Flat / Apartment", icon: "apartment" },
+  { id: "INDEPENDENT", label: "Independent Floor", icon: "home" },
+  { id: "ROOM_SET", label: "1 / 2 Room Set", icon: "meeting_room" },
+  { id: "PG", label: "PG / Co-Living", icon: "groups" },
+  { id: "VILLA", label: "Hill Cottage / Villa", icon: "villa" },
+];
+
 export default function OnboardingPage() {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [selectedRole, setSelectedRole] = useState<RoleOption>("RENTER");
+  const [city, setCity] = useState("Dehradun");
+  const [locality, setLocality] = useState("");
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(["APARTMENT", "INDEPENDENT"]);
+  const [budget, setBudget] = useState("15000");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const router = useRouter();
-  const { user, setOnboardingOption } = useAuth();
+  const { updateUserRole, user } = useAuth();
   const { showToast } = useToast();
 
-  const [step, setStep] = useState(1); // Start at Step 1 of 3
-
-  // Step 1: How will you use Ghar Foundation?
-  const [roleOption, setRoleOption] = useState<"FIND_HOME" | "LIST_PROPERTY" | "BOTH" | null>(null);
-
-  // Step 2: Search Preferences
-  const [city, setCity] = useState("");
-  const [budget, setBudget] = useState(50000);
-  const [propertyType, setPropertyType] = useState<"Flat" | "Villa" | "Studio" | "Penthouse">("Villa");
-  const [moveInDate, setMoveInDate] = useState("2026-08-05");
-
-  // Step 3: Interactive elements
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [kycSubmitted, setKycSubmitted] = useState(false);
-
-  const [redirectUrl, setRedirectUrl] = useState("/dashboard");
-
-  // Read query parameters
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const url = params.get("redirect_url") || "/dashboard";
-      setRedirectUrl(url);
-    }
-  }, []);
-
-  const handleNextStep = () => {
-    if (step === 1) {
-      if (!roleOption) {
-        showToast("Please select how you want to use Ghar Foundation.", "warning");
-        return;
-      }
-      setStep(2);
-    } else if (step === 2) {
-      if (!city) {
-        showToast("Please select your preferred city", "warning");
-        return;
-      }
-      // Apply the onboarding option state updates
-      if (roleOption) setOnboardingOption(roleOption);
-      setStep(3);
-    }
+  const togglePropertyType = (id: string) => {
+    setSelectedTypes((prev) =>
+      prev.includes(id) ? (prev.length > 1 ? prev.filter((item) => item !== id) : prev) : [...prev, id]
+    );
   };
 
-  const handlePrevStep = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
+  const handleCompleteOnboarding = async (destination: "/dashboard" | "/search" | "/post-property") => {
+    setIsSubmitting(true);
+    const targetRole = selectedRole === "OWNER" ? "OWNER" : "RENTER";
 
-  const handleFinalRedirect = (target: string) => {
-    showToast("Profile onboarding completed successfully!", "success");
-    router.push(target);
+    try {
+      await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: targetRole,
+          preferredCity: city,
+          preferredArea: locality || "Rajpur Road",
+          budgetMax: Number(budget) || 15000,
+          propertyTypes: selectedTypes,
+        }),
+      });
+    } catch {
+      // Non-blocking fallback so navigation always succeeds
+    }
+
+    try {
+      await updateUserRole(targetRole);
+    } catch {
+      // Ignore if guest or already updated
+    }
+
+    showToast("Workspace personalized! Welcome to Ghar Foundation.", "success");
+    router.push(destination);
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col font-sans transition-colors">
-      
-      {/* HEADER BAR (Spans full width) */}
-      <header className="flex justify-between items-center px-6 lg:px-12 py-5 bg-white z-20">
-        <Link href="/" className="font-sans font-black text-2xl text-[#222222] tracking-tight hover:opacity-90">
-          Ghar Foundation
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-white font-sans text-[#222222] select-none">
+      {/* ===================================================================== */}
+      {/* LOCKED 64PX HEADER                                                    */}
+      {/* ===================================================================== */}
+      <header className="h-16 px-4 sm:px-8 border-b border-[#EBEBEB] bg-white/95 backdrop-blur-md flex items-center justify-between shrink-0 z-20">
+        <Link href="/" className="flex items-baseline gap-1 group">
+          <span className="font-display font-extrabold text-2xl tracking-tight text-[#222222] group-hover:text-[#FF385C] transition-colors">
+            Ghar<span className="text-[#FF385C]">.</span>
+          </span>
+          <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-widest text-[#717171] ml-1.5 bg-[#F7F7F7] border border-[#EBEBEB] px-2 py-0.5 rounded-full">
+            Uttarakhand Direct
+          </span>
         </Link>
-        <div className="flex items-center space-x-6">
-          {step === 2 && (
-            <span className="text-sm font-semibold text-[#717171]">
-              Step 2 of 3
-            </span>
-          )}
-          <Link
-            href="/faq"
-            className="text-sm font-semibold text-[#717171] hover:text-[#FF385C] transition-colors"
-          >
-            Help & FAQ
-          </Link>
+
+        {/* Step Progress Pills */}
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-[#F7F7F7] border border-[#EBEBEB] p-1 rounded-full">
+          {[
+            { num: 1, label: "1. Your Role" },
+            { num: 2, label: "2. Preferences" },
+            { num: 3, label: "3. Ready" },
+          ].map((item) => {
+            const active = step === item.num;
+            const completed = step > item.num;
+            return (
+              <button
+                key={item.num}
+                type="button"
+                onClick={() => {
+                  if (item.num < step || selectedRole) setStep(item.num as 1 | 2 | 3);
+                }}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1 ${
+                  active
+                    ? "bg-[#222222] text-white shadow-sm"
+                    : completed
+                    ? "bg-[#E8F5E9] text-[#008A05]"
+                    : "text-[#717171] hover:text-[#222222]"
+                }`}
+              >
+                {completed && <Icon name="check_circle" size={13} fill className="text-[#008A05]" />}
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
         </div>
+
+        <button
+          type="button"
+          onClick={() => handleCompleteOnboarding("/dashboard")}
+          className="text-xs font-bold text-[#717171] hover:text-[#222222] px-3 py-1.5 rounded-lg hover:bg-[#F7F7F7] transition-colors flex items-center gap-1"
+        >
+          <span>Skip Setup</span>
+          <Icon name="arrow_forward" size={14} />
+        </button>
       </header>
-      
-      {/* Separator for header in step 2 */}
-      {step === 2 && <div className="w-full h-px bg-[#EBEBEB]" />}
 
-      {/* STEP 1: Account Setup */}
+      {/* ===================================================================== */}
+      {/* STEP 1: ROLE SELECTION (100% LOCKED DESKTOP VIEWPORT — NO SCROLL)     */}
+      {/* ===================================================================== */}
       {step === 1 && (
-        <div className="flex-grow flex flex-col items-center justify-start pt-8 pb-12 px-6 max-w-5xl mx-auto w-full">
-          
-          {/* Progress Indicator */}
-          <div className="w-full max-w-xl space-y-2 mb-6">
-            <div className="flex justify-between text-[11px] font-bold text-[#717171] uppercase tracking-widest">
-              <span>STEP 1 OF 3</span>
-              <span className="text-[#222222] text-[#222222] capitalize tracking-normal">Account Setup</span>
+        <main className="flex-1 lg:overflow-hidden flex flex-col justify-between max-w-[1160px] w-full mx-auto px-4 sm:px-8 py-5 sm:py-6">
+          {/* Top Heading */}
+          <div className="text-center max-w-xl mx-auto">
+            <div className="inline-flex items-center gap-1.5 bg-[#FFF0F3] border border-[#FFD1D8] text-[#FF385C] text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-2.5">
+              <Icon name="verified" size={13} fill />
+              <span>Welcome {user?.name ? user.name.split(" ")[0] : "to Ghar Foundation"}</span>
             </div>
-            <div className="h-1.5 bg-[#EBEBEB] rounded-full overflow-hidden">
-              <div className="h-full bg-[#FF385C] bg-[#008A05] w-1/3 rounded-full transition-all duration-500" />
-            </div>
-          </div>
-
-          {/* Heading */}
-          <div className="text-center space-y-2 max-w-xl mb-8">
-            <h2 className="text-3xl font-sans font-bold text-[#222222] tracking-tight">
-              How will you use Ghar Foundation?
-            </h2>
-            <p className="text-[14px] text-[#717171] font-medium">
-              Select the primary purpose for your account. You can always change these settings later in your profile.
+            <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold tracking-tight text-[#222222] leading-tight">
+              How would you like to use Ghar?
+            </h1>
+            <p className="text-xs sm:text-sm text-[#717171] mt-1.5">
+              Select your primary goal so we can configure your zero-brokerage Uttarakhand workspace. You can switch modes anytime.
             </p>
           </div>
 
-          {/* Selection Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full max-w-4xl mb-8">
-            
-            {/* Card 1: Find a Home */}
-            <button
-              onClick={() => setRoleOption("FIND_HOME")}
-              className={`bg-[#F7F7F7] rounded-[16px] overflow-hidden text-center border p-5 space-y-4 transition-all duration-200 flex flex-col items-center justify-start h-[280px] ${
-                roleOption === "FIND_HOME"
-                  ? "border-[#FF385C] ring-1 ring-[#FF385C] shadow-md"
-                  : "border-[#EBEBEB]/80 shadow-sm hover:border-[#B0B0B0]"
-              }`}
-            >
-              <div className="w-full h-32 rounded-xl overflow-hidden bg-[#D1DFFA] flex items-center justify-center p-2">
-                <img
-                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&auto=format&fit=crop&q=80"
-                  alt="Find a Home"
-                  className="w-full h-full object-cover rounded-lg mix-blend-multiply opacity-90"
-                />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-bold text-xl text-[#222222]">
-                  Find a Home
-                </h3>
-                <p className="text-sm text-[#717171] leading-relaxed font-medium px-2">
-                  I'm looking to rent premium properties and sign agreements.
-                </p>
-              </div>
-            </button>
+          {/* 3 Interactive Role Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 my-4">
+            {[
+              {
+                id: "RENTER" as const,
+                badge: "Tenant Mode",
+                title: "Find a Rental Home",
+                desc: "Browse verified flats, room sets & hill cottages across Dehradun, Rishikesh & Nainital with ₹0 brokerage.",
+                icon: "home",
+                perks: ["Direct Owner Phone & Chat", "11-Month Digital Agreement"],
+              },
+              {
+                id: "OWNER" as const,
+                badge: "Homeowner Mode",
+                title: "List My Property",
+                desc: "Post your rental property for free, receive Aadhaar-verified tenant inquiries, and manage leases.",
+                icon: "real_estate_agent",
+                perks: ["Free Property Listing", "Aadhaar KYC Verified Tenants"],
+              },
+              {
+                id: "BOTH" as const,
+                badge: "Dual Workspace",
+                title: "Both Rent & Host",
+                desc: "Looking for a place to stay while also managing or listing residential properties in Uttarakhand.",
+                icon: "swap_horiz",
+                perks: ["1-Click Role Switcher", "Full CRM & Saved Shortlists"],
+              },
+            ].map((card) => {
+              const isSelected = selectedRole === card.id;
+              return (
+                <div
+                  key={card.id}
+                  onClick={() => setSelectedRole(card.id)}
+                  className={`group relative rounded-2xl p-5 cursor-pointer transition-all duration-200 flex flex-col justify-between border-2 ${
+                    isSelected
+                      ? "hero-mesh-bg border-[#FF385C] shadow-md -translate-y-0.5"
+                      : "bg-white border-[#EBEBEB] hover:border-[#222222]/40 hover:shadow-sm"
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3.5">
+                      <span
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                          isSelected
+                            ? "bg-[#FF385C] text-white"
+                            : "bg-[#F7F7F7] text-[#717171] border border-[#EBEBEB]"
+                        }`}
+                      >
+                        {card.badge}
+                      </span>
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                          isSelected
+                            ? "bg-[#FF385C] text-white"
+                            : "border border-[#DDDDDD] bg-white text-transparent group-hover:border-[#222222]"
+                        }`}
+                      >
+                        <Icon name="check" size={14} />
+                      </div>
+                    </div>
 
-            {/* Card 2: List Property */}
-            <button
-              onClick={() => setRoleOption("LIST_PROPERTY")}
-              className={`bg-[#F7F7F7] rounded-[16px] overflow-hidden text-center border p-5 space-y-4 transition-all duration-200 flex flex-col items-center justify-start h-[280px] ${
-                roleOption === "LIST_PROPERTY"
-                  ? "border-[#FF385C] ring-1 ring-[#FF385C] shadow-md"
-                  : "border-[#EBEBEB]/80 shadow-sm hover:border-[#B0B0B0]"
-              }`}
-            >
-              <div className="w-full h-32 rounded-xl overflow-hidden bg-[#C9E2F5] flex items-center justify-center p-2">
-                <img
-                  src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=400&auto=format&fit=crop&q=80"
-                  alt="List Property"
-                  className="w-full h-full object-cover rounded-lg mix-blend-multiply opacity-90"
-                />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-bold text-xl text-[#222222]">
-                  List Property
-                </h3>
-                <p className="text-sm text-[#717171] leading-relaxed font-medium px-2">
-                  I want to list properties and manage my rental portfolio.
-                </p>
-              </div>
-            </button>
+                    <div
+                      className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-colors ${
+                        isSelected
+                          ? "bg-[#222222] text-white"
+                          : "bg-[#F7F7F7] text-[#222222] border border-[#EBEBEB]"
+                      }`}
+                    >
+                      <Icon name={card.icon} size={22} />
+                    </div>
 
-            {/* Card 3: Both */}
-            <button
-              onClick={() => setRoleOption("BOTH")}
-              className={`bg-[#F7F7F7] rounded-[16px] overflow-hidden text-center border p-5 space-y-4 transition-all duration-200 flex flex-col items-center justify-start h-[280px] ${
-                roleOption === "BOTH"
-                  ? "border-[#FF385C] ring-1 ring-[#FF385C] shadow-md"
-                  : "border-[#EBEBEB]/80 shadow-sm hover:border-[#B0B0B0]"
-              }`}
-            >
-              <div className="w-full h-32 rounded-xl overflow-hidden bg-[#F1F3F5] flex items-center justify-center p-4">
-                <Icon name="search" size={48} className="text-[#222222] opacity-80" />
-                <Icon name="home" size={64} className="text-[#10b981] -ml-6 mt-4 opacity-90" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-bold text-xl text-[#222222]">
-                  Both
-                </h3>
-                <p className="text-sm text-[#717171] leading-relaxed font-medium px-2">
-                  I'm interested in both listing and renting on the platform.
-                </p>
-              </div>
-            </button>
+                    <h3 className="text-base sm:text-lg font-extrabold text-[#222222]">{card.title}</h3>
+                    <p className="text-xs text-[#717171] leading-relaxed mt-1">{card.desc}</p>
+                  </div>
 
+                  <div className="pt-3.5 mt-4 border-t border-[#EBEBEB] space-y-1.5">
+                    {card.perks.map((perk) => (
+                      <div key={perk} className="flex items-center gap-1.5 text-[11px] font-bold text-[#222222]">
+                        <Icon name="check_circle" size={14} className="text-[#008A05] shrink-0" fill />
+                        <span>{perk}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Action buttons */}
-          <div className="w-full max-w-sm space-y-4 text-center">
-            <button
-              onClick={handleNextStep}
-              className="w-full bg-[#7988A4] hover:bg-[#687691] text-white font-semibold py-3.5 rounded-lg text-sm text-center transition-colors shadow-sm"
-            >
-              Continue to Profile Setup
-            </button>
-            <Link
-              href="/login"
-              className="block text-sm font-semibold text-[#7988A4] hover:text-[#222222] transition-colors"
-            >
-              Back to Login
-            </Link>
-          </div>
-
-          {/* Footer Features Info */}
-          <div className="w-full max-w-4xl mt-12 pt-6 border-t border-[#EBEBEB]/60">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="flex items-start gap-3">
-                <div className="text-[#222222] text-[#008A05] mt-0.5">
-                  <Icon name="verified" size={24} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-[#222222] mb-1">KYC Verified</h4>
-                  <p className="text-xs text-[#717171] leading-relaxed font-medium pr-4">Verified profiles increase trust by 85% for both parties.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="text-[#222222] text-[#008A05] mt-0.5">
-                  <Icon name="gavel" size={24} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-[#222222] mb-1">Smart Agreements</h4>
-                  <p className="text-xs text-[#717171] leading-relaxed font-medium pr-4">Generate legally binding rental agreements in seconds.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="text-[#222222] text-[#008A05] mt-0.5">
-                  <Icon name="support_agent" size={24} />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-[#222222] mb-1">24/7 Support</h4>
-                  <p className="text-xs text-[#717171] leading-relaxed font-medium pr-4">Our premium support team is here to help at every step.</p>
-                </div>
-              </div>
+          {/* Bottom Action & Trust Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-[#EBEBEB]">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs font-semibold text-[#717171]">
+              <span className="flex items-center gap-1.5">
+                <Icon name="verified_user" size={16} className="text-[#008A05]" fill />
+                100% Aadhaar KYC Verified Network
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Icon name="savings" size={16} className="text-[#FF385C]" />
+                Zero Brokerage Guarantee
+              </span>
+              <span className="hidden md:flex items-center gap-1.5">
+                <Icon name="local_police" size={16} className="text-[#222222]" />
+                Uttarakhand Police Form Ready
+              </span>
             </div>
-          </div>
 
-        </div>
+            <button
+              type="button"
+              disabled={!selectedRole}
+              onClick={() => setStep(2)}
+              className="btn-cta-primary px-8 py-3 text-sm w-full sm:w-auto disabled:opacity-50"
+            >
+              <span>Continue to Preferences</span>
+              <Icon name="arrow_forward" size={16} />
+            </button>
+          </div>
+        </main>
       )}
 
-      {/* STEP 2: Tailor Your Search (Split Layout) */}
+      {/* ===================================================================== */}
+      {/* STEP 2: PREFERENCES (LOCKED SPLIT SCREEN — ZERO DESKTOP SCROLL)       */}
+      {/* ===================================================================== */}
       {step === 2 && (
-        <div className="flex-grow flex flex-col lg:flex-row bg-white">
-          
-          {/* LEFT PANEL */}
-          <div className="w-full lg:w-1/2 bg-[#DDE5FF] bg-[#F7F7F7] flex flex-col justify-center items-center p-8 lg:p-16 relative overflow-hidden min-h-[400px] lg:min-h-0">
-            <div className="max-w-md text-center space-y-3 z-10 mb-8">
-              <h1 className="text-3xl lg:text-4xl font-sans font-bold text-[#222222] text-[#222222] leading-tight">
-                Find Your Next Home, Easily
-              </h1>
-              <p className="text-[15px] text-[#717171] leading-relaxed font-medium">
-                Explore rentals and schedule viewings in one place.
+        <main className="flex-1 lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+          {/* Left 5 Cols: Visual Showcase */}
+          <div className="hidden lg:flex lg:col-span-5 hero-mesh-bg border-r border-[#EBEBEB] p-8 flex-col justify-between relative overflow-hidden">
+            <div>
+              <span className="inline-flex items-center gap-1.5 bg-white/90 border border-[#EBEBEB] text-[#222222] text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                <Icon name="location_on" size={13} className="text-[#FF385C]" />
+                Uttarakhand Rental Radar
+              </span>
+              <h2 className="text-2xl font-extrabold text-[#222222] tracking-tight mt-3 leading-snug">
+                {selectedRole === "OWNER"
+                  ? "Connect directly with verified tenants in your city."
+                  : "Curating direct-owner homes in your favorite locality."}
+              </h2>
+              <p className="text-xs text-[#717171] mt-1.5 leading-relaxed">
+                We match your city and budget preferences with physical &amp; Aadhaar-verified listings across Uttarakhand.
               </p>
             </div>
 
-            {/* Simulated Map Illustration */}
-            <div className="relative w-full max-w-[400px] aspect-square bg-[#EAF0FF] bg-[#F7F7F7] rounded-[24px] shadow-xl p-8 border border-white/40 flex flex-col justify-between overflow-hidden">
-              <div className="text-center mb-6">
-                <h3 className="font-bold text-2xl text-[#222222] text-[#222222] tracking-tight">Find Your Next Home, Easily</h3>
-                <p className="text-[13px] text-[#717171] mt-1">Explore rentals and schedule viewings in one place.</p>
-              </div>
-
-              <div className="flex-1 relative rounded-xl overflow-hidden shadow-sm flex items-center justify-center">
-                 <img
-                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=500&auto=format&fit=crop&q=80"
-                  alt="Map"
-                  className="w-full h-full object-cover mix-blend-overlay opacity-80"
-                />
-                
-                {/* Floating Map Pin 1 */}
-                <div className="absolute top-10 left-10 bg-white/90 backdrop-blur-sm border border-[#EBEBEB] rounded-full p-2 shadow-lg flex items-center justify-center text-[#717171]">
-                  <Icon name="home" size={20} />
-                </div>
-
-                {/* Floating Map Pin 2 */}
-                <div className="absolute bottom-12 right-12 bg-white/90 backdrop-blur-sm border border-[#EBEBEB] rounded-full p-2 shadow-lg flex items-center justify-center text-[#717171]">
-                  <Icon name="home" size={20} />
-                </div>
-
-                {/* Center Pin */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl p-3 shadow-xl flex flex-col items-center">
-                   <div className="bg-[#DDE5FF] text-[#10b981] p-2 rounded-lg mb-2">
-                      <Icon name="today" size={24} />
-                   </div>
-                   <div className="text-[#E5B57A]">
-                      <Icon name="check" size={28} className="font-bold" />
-                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT PANEL (Preferences wizard) */}
-          <div className="w-full lg:w-1/2 bg-[#F7F7F7] flex flex-col justify-start p-10 lg:py-16 lg:px-20 relative">
-            <div className="max-w-md w-full mx-auto flex flex-col h-full">
-                <div className="flex gap-2 mb-10 w-20">
-                  <div className="h-1.5 flex-1 rounded-full bg-[#EBEBEB]" />
-                  <div className="h-1.5 flex-1 rounded-full bg-[#FF385C] bg-[#008A05]" />
-                  <div className="h-1.5 flex-1 rounded-full bg-[#EBEBEB]" />
-                </div>
-
-                <div className="flex flex-col justify-start w-full space-y-6">
-                  <div className="space-y-2 mb-2">
-                    <h2 className="text-2xl font-bold tracking-tight text-[#222222] font-sans">
-                      Tailor Your Search
-                    </h2>
-                    <p className="text-[15px] text-[#717171] leading-relaxed font-medium">
-                      Help us curate the best premium listings based on your lifestyle and budget.
-                    </p>
-                  </div>
-
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[13px] font-bold text-[#717171]">Preferred City</label>
-                      <div className="relative">
-                        <select
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-lg px-4 py-3.5 appearance-none focus:outline-none focus:ring-1 focus:ring-[#FF385C] text-[#717171] text-sm font-medium pr-10"
-                        >
-                          <option value="">Select a city</option>
-                          <option value="Dehradun">Dehradun</option>
-                          <option value="Mussoorie">Mussoorie</option>
-                          <option value="Haridwar">Haridwar</option>
-                          <option value="Rishikesh">Rishikesh</option>
-                          <option value="Nainital">Nainital</option>
-                          <option value="Haldwani">Haldwani</option>
-                        </select>
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#717171]">
-                          <Icon name="expand_more" size={20} />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <label className="text-[13px] font-bold text-[#717171]">Monthly Budget (INR)</label>
-                        <span className="bg-[#EEF2FF] text-[#222222] text-xs font-bold px-3 py-1 rounded-full">
-                          ₹ {budget.toLocaleString()}+
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={10000}
-                        max={500000}
-                        step={5000}
-                        value={budget}
-                        onChange={(e) => setBudget(Number(e.target.value))}
-                        className="w-full h-1.5 bg-[#EBEBEB] rounded-lg appearance-none cursor-pointer accent-[#FF385C]"
-                      />
-                      <div className="flex justify-between text-[11px] text-[#717171] font-bold">
-                        <span>10K</span>
-                        <span>500K</span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[13px] font-bold text-[#717171]">Property Type</label>
-                      <div className="grid grid-cols-4 gap-3">
-                        {[
-                          { name: "Flat", icon: "apartment" },
-                          { name: "Villa", icon: "home" },
-                          { name: "Studio", icon: "meeting_room" },
-                          { name: "Penthouse", icon: "domain" }
-                        ].map((t) => (
-                          <button
-                            key={t.name}
-                            type="button"
-                            onClick={() => setPropertyType(t.name as any)}
-                            className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all ${
-                              propertyType === t.name
-                                ? "border-[#FF385C] text-[#222222] text-[#008A05] font-bold shadow-sm"
-                                : "border-[#EBEBEB]/80 text-[#717171] font-medium"
-                            }`}
-                          >
-                            <Icon name={t.icon} size={20} />
-                            <span className="text-[11px]">{t.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[13px] font-bold text-[#717171]">Move-in Date</label>
-                      <div className="relative">
-                        <input
-                          type="date"
-                          value={moveInDate}
-                          onChange={(e) => setMoveInDate(e.target.value)}
-                          className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-lg px-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-[#FF385C] text-[#717171] text-sm font-medium"
-                        />
-                      </div>
-                      <p className="text-[11px] text-[#717171] italic pt-1">
-                        You can always adjust this later in your profile settings.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-auto pt-10">
-                  <button
-                    type="button"
-                    onClick={handleNextStep}
-                    className="w-full bg-[#FF385C] hover:opacity-90 text-white font-semibold py-3.5 rounded-lg text-[15px] text-center transition-all shadow-md flex items-center justify-center gap-2 group"
-                  >
-                    <span>Continue</span>
-                    <Icon
-                      name="arrow_forward"
-                      size={18}
-                      className="group-hover:translate-x-1 transition-transform"
-                    />
-                  </button>
-                </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 3: SUCCESS & DASHBOARD ACTION PANEL */}
-      {step === 3 && (
-        <div className="flex-grow flex flex-col lg:flex-row bg-white">
-          
-          {/* LEFT PANEL */}
-          <div className="w-full lg:w-1/2 flex flex-col justify-center items-start p-10 lg:p-20 relative overflow-hidden bg-gradient-to-br from-[#F5F8FF] to-[#FAFAFA] from-[#F7F7F7] to-[#F7F7F7]">
-            
-            <div className="w-full max-w-lg space-y-8 z-10">
-              
-              {/* Floating Image */}
-              <div className="w-[110%] -ml-[5%] lg:w-[130%] lg:-ml-[15%] aspect-video rounded-r-3xl rounded-l-md overflow-hidden shadow-xl border border-[#EBEBEB] border-[#EBEBEB]/40 relative">
+            {/* Interactive Preview Card */}
+            <div className="bg-white rounded-2xl border border-[#EBEBEB] p-4 shadow-md space-y-3 my-auto">
+              <div className="relative h-36 rounded-xl overflow-hidden bg-[#F7F7F7]">
                 <img
-                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&auto=format&fit=crop&q=80"
-                  alt="Home Keys"
+                  src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80"
+                  alt="Uttarakhand Home"
                   className="w-full h-full object-cover"
                 />
-              </div>
-
-              {/* Status Header */}
-              <div className="space-y-4 max-w-md">
-                <div className="inline-flex items-center gap-1.5 bg-[#E8F5E9] text-[#2E7D32] bg-[#F0FDF4] text-[#008A05] text-xs font-semibold px-3 py-1.5 rounded-full border border-[#C8E6C9]">
-                  <Icon name="check_circle" size={16} />
-                  <span>Onboarding Complete</span>
+                <div className="absolute top-2.5 left-2.5 bg-[#008A05] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <Icon name="verified" size={11} fill /> DIRECT OWNER
                 </div>
-
-                <h1 className="text-4xl lg:text-5xl font-sans font-black text-[#222222] text-[#222222] tracking-tight leading-tight">
-                  You're all set!
-                </h1>
-
-                <p className="text-[15px] text-[#717171] text-[#717171] font-medium leading-relaxed">
-                  Welcome to the elite tier of property rentals. Your profile is ready, and your journey to find the perfect home starts now.
-                </p>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-4">
-                <button
-                  onClick={() => handleFinalRedirect("/")}
-                  className="bg-[#FF385C] hover:opacity-95 text-white font-semibold py-3 px-6 rounded-lg text-sm shadow-sm transition-all"
-                >
-                  Explore Properties
-                </button>
-
-                <button
-                  onClick={() => handleFinalRedirect(redirectUrl)}
-                  className="bg-[#F7F7F7] border border-[#EBEBEB]/80 hover:bg-[#F7F7F7] text-[#222222] font-semibold py-3 px-6 rounded-lg text-sm transition-all"
-                >
-                  Go to Dashboard
-                </button>
-              </div>
-
-            </div>
-          </div>
-
-          {/* RIGHT PANEL */}
-          <div className="w-full lg:w-1/2 flex flex-col justify-center p-10 lg:p-20 relative">
-            
-            <div className="max-w-md w-full space-y-6">
-              
-              {/* Dashboard Panel 1: Browse Matches */}
-              <div
-                onClick={() => handleFinalRedirect("/search")}
-                className="bg-[#F7F7F7] p-6 rounded-[16px] border border-[#EBEBEB] border-[#EBEBEB] shadow-sm flex flex-col gap-4 hover:border-[#FF385C] hover:shadow-md cursor-pointer group transition-all"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="w-12 h-12 bg-[#008A05] text-white rounded-xl flex items-center justify-center">
-                    <Icon name="search" size={24} />
-                  </div>
-                  <div className="text-[#717171] group-hover:text-[#FF385C] group-hover:translate-x-1 transition-all">
-                    <Icon name="arrow_forward" size={20} />
-                  </div>
+                <div className="absolute bottom-2.5 right-2.5 bg-[#222222]/90 backdrop-blur-sm text-white text-xs font-extrabold px-2.5 py-1 rounded-lg">
+                  ₹{Number(budget || 15000).toLocaleString("en-IN")}/mo
                 </div>
-                
-                <div className="space-y-1">
-                  <h3 className="font-bold text-[17px] text-[#222222] leading-tight">
-                    Browse Matches
-                  </h3>
-                  <p className="text-[13px] text-[#717171] leading-relaxed font-medium">
-                    Our AI has already curated 12 properties that match your search criteria and lifestyle preferences.
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-[#222222]">
+                    Verified Homes in {city}
+                  </p>
+                  <p className="text-[11px] text-[#717171]">
+                    {locality ? `${locality}, ${city}` : `Rajpur Road, Tapovan & Prime Corridors`}
                   </p>
                 </div>
-                  
-                <div className="flex items-center gap-1 pt-1">
-                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" className="w-7 h-7 rounded-full border-2 border-white border-[#EBEBEB]" alt="face1" />
-                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80" className="w-7 h-7 rounded-full border-2 border-white border-[#EBEBEB] -ml-2" alt="face2" />
-                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80" className="w-7 h-7 rounded-full border-2 border-white border-[#EBEBEB] -ml-2" alt="face3" />
-                  <div className="w-7 h-7 bg-[#FF385C] text-white text-[9px] font-bold rounded-full flex items-center justify-center -ml-2 border-2 border-white border-[#EBEBEB]">
-                    +9
+                <span className="text-[10px] font-bold text-[#FF385C] bg-[#FFF0F3] border border-[#FFD1D8] px-2.5 py-1 rounded-full">
+                  ₹0 Brokerage
+                </span>
+              </div>
+            </div>
+
+            {/* Bottom Stats */}
+            <div className="grid grid-cols-3 gap-3 pt-4 border-t border-[#EBEBEB]/80">
+              <div>
+                <p className="text-base font-extrabold text-[#222222]">2,400+</p>
+                <p className="text-[11px] text-[#717171]">Verified Homes</p>
+              </div>
+              <div>
+                <p className="text-base font-extrabold text-[#008A05]">₹0</p>
+                <p className="text-[11px] text-[#717171]">Broker Commission</p>
+              </div>
+              <div>
+                <p className="text-base font-extrabold text-[#222222]">6 Cities</p>
+                <p className="text-[11px] text-[#717171]">Across Uttarakhand</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right 7 Cols: Compact Preferences Form */}
+          <div className="lg:col-span-7 flex flex-col justify-between p-5 sm:p-8 lg:px-12 lg:py-7 bg-white">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF385C]">
+                Step 2 of 3 · Personalize Feed
+              </span>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-[#222222] tracking-tight mt-0.5">
+                {selectedRole === "OWNER"
+                  ? "Where is your rental property located?"
+                  : "Set your rental search preferences"}
+              </h2>
+              <p className="text-xs text-[#717171] mt-1">
+                We use this to prioritize listings and alerts on your dashboard.
+              </p>
+            </div>
+
+            <div className="space-y-4 my-4">
+              {/* 1. City Selector Pills */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#222222] mb-2">
+                  Primary Uttarakhand City
+                </label>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {UTTARAKHAND_CITIES.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setCity(c)}
+                      className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition-all ${
+                        city === c
+                          ? "bg-[#222222] text-white border-[#222222] shadow-sm"
+                          : "bg-[#F7F7F7] text-[#717171] border-[#EBEBEB] hover:border-[#222222] hover:text-[#222222]"
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Locality & Monthly Budget Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-[#222222] mb-1.5">
+                    Preferred Locality / Area
+                  </label>
+                  <div className="relative">
+                    <Icon name="search" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#717171]" />
+                    <input
+                      type="text"
+                      value={locality}
+                      onChange={(e) => setLocality(e.target.value)}
+                      placeholder={`e.g. Rajpur Road, ${city}`}
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl pl-9 pr-3.5 py-2.5 text-xs sm:text-sm font-medium text-[#222222] placeholder-[#717171] focus:outline-none focus:bg-white focus:border-[#222222] transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-[#222222] mb-1.5">
+                    {selectedRole === "OWNER" ? "Expected Monthly Rent (₹)" : "Max Monthly Budget (₹)"}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-[#717171]">₹</span>
+                    <input
+                      type="number"
+                      value={budget}
+                      onChange={(e) => setBudget(e.target.value)}
+                      placeholder="15000"
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl pl-8 pr-3.5 py-2.5 text-xs sm:text-sm font-bold text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222] transition-all"
+                    />
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Dashboard Panel 2: KYC Verified Profile */}
-                <div
-                  onClick={() => {
-                    setKycSubmitted(true);
-                    showToast("Simulated KYC Documents Uploaded!", "info");
-                  }}
-                  className="bg-[#F7F7F7] p-6 rounded-[16px] border border-[#EBEBEB] border-[#EBEBEB] shadow-sm flex flex-col gap-4 hover:border-[#FF385C] hover:shadow-md cursor-pointer transition-all"
+              {/* 3. Property Configuration Chips */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#222222] mb-2">
+                  Property Types of Interest
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {PROPERTY_TYPES.map((type) => {
+                    const active = selectedTypes.includes(type.id);
+                    return (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => togglePropertyType(type.id)}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold border flex items-center gap-1.5 transition-all ${
+                          active
+                            ? "bg-[#FFF0F3] border-[#FF385C] text-[#FF385C]"
+                            : "bg-[#F7F7F7] border-[#EBEBEB] text-[#717171] hover:text-[#222222]"
+                        }`}
+                      >
+                        <Icon name={type.icon} size={15} />
+                        <span>{type.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Controls */}
+            <div className="flex items-center justify-between gap-3 pt-4 border-t border-[#EBEBEB]">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="btn-cta-secondary px-5 py-2.5 text-xs"
+              >
+                <Icon name="arrow_back" size={15} />
+                <span>Back</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStep(3)}
+                className="btn-cta-primary px-7 py-2.5 text-xs sm:text-sm"
+              >
+                <span>Save &amp; Continue</span>
+                <Icon name="arrow_forward" size={16} />
+              </button>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ===================================================================== */}
+      {/* STEP 3: ALL SET / LAUNCH WORKSPACE (ZERO DESKTOP SCROLL)              */}
+      {/* ===================================================================== */}
+      {step === 3 && (
+        <main className="flex-1 lg:overflow-hidden grid grid-cols-1 lg:grid-cols-12">
+          {/* Left 6 Cols: Launch Actions */}
+          <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:px-12 lg:py-8 bg-white">
+            <div>
+              <div className="inline-flex items-center gap-1.5 bg-[#E8F5E9] border border-[#C8E6C9] text-[#008A05] text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                <Icon name="check_circle" size={14} fill />
+                <span>Setup Complete</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#222222] tracking-tight mt-3 leading-tight">
+                Your {selectedRole === "OWNER" ? "Homeowner" : "Tenant"} Workspace is Ready!
+              </h1>
+              <p className="text-xs sm:text-sm text-[#717171] mt-2 leading-relaxed">
+                We have tailored your dashboard for{" "}
+                <strong className="text-[#222222]">{city}</strong>{" "}
+                {locality ? `(${locality})` : ""} with zero-brokerage protection enabled.
+              </p>
+            </div>
+
+            {/* Summary Checklist Card */}
+            <div className="bg-[#F7F7F7] rounded-2xl border border-[#EBEBEB] p-4 sm:p-5 space-y-3 my-4">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#717171] font-medium">Selected Mode</span>
+                <span className="font-bold text-[#222222] bg-white px-2.5 py-1 rounded-lg border border-[#EBEBEB]">
+                  {selectedRole === "OWNER" ? "Property Owner / Host" : selectedRole === "BOTH" ? "Tenant + Owner Mode" : "Verified Renter"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#717171] font-medium">Primary Location</span>
+                <span className="font-bold text-[#222222]">
+                  {locality ? `${locality}, ${city}` : `${city}, Uttarakhand`}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-[#717171] font-medium">
+                  {selectedRole === "OWNER" ? "Target Monthly Rent" : "Monthly Budget"}
+                </span>
+                <span className="font-extrabold text-[#008A05]">
+                  ₹{Number(budget || 15000).toLocaleString("en-IN")}/mo
+                </span>
+              </div>
+            </div>
+
+            {/* Launch Buttons */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => handleCompleteOnboarding("/dashboard")}
+                  className="btn-cta-primary flex-1 py-3 px-6 text-xs sm:text-sm disabled:opacity-50"
                 >
-                  <div className="w-10 h-10 bg-[#FFF3E0] text-[#FF8F00] bg-[#FCF3DC] text-[#B45309] rounded-xl flex items-center justify-center">
-                    <Icon name="verified_user" size={20} />
+                  <Icon name="grid_view" size={17} />
+                  <span>{isSubmitting ? "Opening Workspace..." : "Go to My Dashboard"}</span>
+                </button>
+
+                {selectedRole === "OWNER" ? (
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => handleCompleteOnboarding("/post-property")}
+                    className="btn-cta-secondary flex-1 py-3 px-6 text-xs sm:text-sm"
+                  >
+                    <Icon name="add_home" size={17} className="text-[#FF385C]" />
+                    <span>Post First Property</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => handleCompleteOnboarding("/search")}
+                    className="btn-cta-secondary flex-1 py-3 px-6 text-xs sm:text-sm"
+                  >
+                    <Icon name="search" size={17} className="text-[#FF385C]" />
+                    <span>Explore {city} Homes</span>
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                className="text-xs font-bold text-[#717171] hover:text-[#222222] transition-colors flex items-center gap-1"
+              >
+                <Icon name="arrow_back" size={14} />
+                <span>Modify preferences</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Right 6 Cols: Workspace Preview */}
+          <div className="hidden lg:flex lg:col-span-6 hero-mesh-bg border-l border-[#EBEBEB] p-8 flex-col justify-center items-center relative overflow-hidden">
+            <div className="w-full max-w-md bg-white rounded-2xl border border-[#EBEBEB] shadow-xl p-5 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#EBEBEB]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#FF385C] text-white flex items-center justify-center font-extrabold text-sm">
+                    G.
                   </div>
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-[15px] text-[#222222] leading-tight">
-                      Verify Identity (KYC)
-                    </h3>
-                    <p className="text-[12px] text-[#717171] leading-relaxed font-medium">
-                      Get the 'Elite Verified' badge to fast-track your applications.
-                    </p>
-                  </div>
-                  
-                  <div className="pt-2">
-                    <div className="h-1.5 w-full bg-[#EBEBEB] rounded-full overflow-hidden mb-2">
-                      <div className={`h-full rounded-full transition-all duration-500 ${kycSubmitted ? "w-full bg-[#008A05]" : "w-1/3 bg-[#E0A526]"}`} />
-                    </div>
-                    <span className="text-[10px] font-bold text-[#B45309] uppercase tracking-wider">
-                      {kycSubmitted ? "Verified" : "Step 1 of 3 Pending"}
-                    </span>
+                  <div>
+                    <p className="text-xs font-extrabold text-[#222222]">Ghar Foundation Studio</p>
+                    <p className="text-[10px] text-[#717171]">{city} Direct Network</p>
                   </div>
                 </div>
+                <span className="bg-[#E8F5E9] text-[#008A05] text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                  ACTIVE
+                </span>
+              </div>
 
-                {/* Dashboard Panel 3: Notifications Switch */}
-                <div className="bg-[#F7F7F7] p-6 rounded-[16px] border border-[#EBEBEB] border-[#EBEBEB] shadow-sm flex flex-col gap-4 transition-all">
-                  <div className="w-10 h-10 bg-[#E8EAF6] text-[#3F51B5] bg-[#EFF6FF] text-[#2563EB] rounded-xl flex items-center justify-center">
-                    <Icon name="notifications" size={20} />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-[15px] text-[#222222] leading-tight">
-                      Enable Notifications
-                    </h3>
-                    <p className="text-[12px] text-[#717171] leading-relaxed font-medium">
-                      Be the first to know when a listing matches your saved search.
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 pt-2">
-                    <button
-                      onClick={() => {
-                        setNotificationsEnabled(!notificationsEnabled);
-                        showToast(
-                          notificationsEnabled ? "Notifications Disabled" : "Notifications Enabled!",
-                          notificationsEnabled ? "info" : "success"
-                        );
-                      }}
-                      className={`w-11 h-6 rounded-full p-0.5 transition-colors focus:outline-none ${
-                        notificationsEnabled ? "bg-[#EFF6FF]" : "bg-[#EBEBEB]"
-                      }`}
-                    >
-                      <div className={`bg-white w-5 h-5 rounded-full shadow-sm transform transition-transform duration-200 ${notificationsEnabled ? "translate-x-5" : "translate-x-0"}`} />
-                    </button>
-                    <span className="text-xs font-bold text-[#717171]">
-                      {notificationsEnabled ? "Enabled" : "Disabled"}
-                    </span>
-                  </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-[#F7F7F7] border border-[#EBEBEB]">
+                  <Icon name="verified_user" size={18} className="text-[#008A05] mb-1" fill />
+                  <p className="text-xs font-bold text-[#222222]">Aadhaar e-KYC</p>
+                  <p className="text-[10px] text-[#717171]">Instant Trust Badge</p>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F7F7F7] border border-[#EBEBEB]">
+                  <Icon name="description" size={18} className="text-[#FF385C] mb-1" />
+                  <p className="text-xs font-bold text-[#222222]">11-Month Lease</p>
+                  <p className="text-[10px] text-[#717171]">Digital Stamp Ready</p>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F7F7F7] border border-[#EBEBEB]">
+                  <Icon name="chat_bubble_outline" size={18} className="text-[#222222] mb-1" />
+                  <p className="text-xs font-bold text-[#222222]">Direct Inbox</p>
+                  <p className="text-[10px] text-[#717171]">Owner-to-Tenant Chat</p>
+                </div>
+                <div className="p-3 rounded-xl bg-[#F7F7F7] border border-[#EBEBEB]">
+                  <Icon name="local_police" size={18} className="text-[#008A05] mb-1" />
+                  <p className="text-xs font-bold text-[#222222]">Police Form</p>
+                  <p className="text-[10px] text-[#717171]">Auto-Filled PDF</p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </main>
       )}
-
     </div>
   );
 }

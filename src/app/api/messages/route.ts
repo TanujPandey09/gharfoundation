@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { dispatchSystemNotification } from "@/lib/services/notifications";
 
 /**
  * GET /api/messages
@@ -66,6 +67,13 @@ export async function POST(request: NextRequest) {
         sender: { select: { id: true, name: true, image: true } },
         receiver: { select: { id: true, name: true, image: true } },
       },
+    });
+
+    await dispatchSystemNotification({
+      userId: body.receiverId,
+      title: `New message from ${message.sender?.name || "Ghar Foundation User"}`,
+      body: body.content.slice(0, 120),
+      type: "CHAT",
     });
 
     return NextResponse.json(message, { status: 201 });

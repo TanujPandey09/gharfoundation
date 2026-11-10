@@ -73,17 +73,19 @@ export default function FaqPage() {
   );
 
   return (
-    <div className="bg-white text-[#222222] min-h-screen font-sans py-16 md:py-24">
-      <div className="max-w-3xl mx-auto px-6">
-        {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <h1 className="font-display font-extrabold text-[2.25rem] tracking-tight text-[#222222]">
+    <div className="bg-white text-[#222222] min-h-screen font-sans">
+      <div className="hero-mesh-bg border-b border-[#EBEBEB] pt-5 pb-7 sm:pt-8 sm:pb-10">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h1 className="font-display font-extrabold text-2xl sm:text-4xl tracking-tight text-[#222222]">
             Frequently asked questions
           </h1>
-          <p className="mt-3 text-[#717171] text-sm sm:text-base">
+          <p className="mt-2 text-[#717171] text-xs sm:text-base">
             Everything you need to know about renting or listing properties in Uttarakhand.
           </p>
         </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
         {/* Tab Filters */}
         <div className="flex justify-center gap-1.5 p-1 bg-[#F7F7F7]/50 rounded-2xl mb-10">
@@ -159,7 +161,7 @@ export default function FaqPage() {
           <div className="mt-4">
             <Link
               href="/contact"
-              className="inline-flex items-center gap-1.5 bg-[#FF385C] hover:bg-[#E00B41] text-white px-5 py-3 rounded-xl text-xs font-bold shadow-sm shadow-[#FF385C]/10 transition-all active:scale-[0.98]"
+              className="btn-cta-primary px-5 py-3 text-xs"
             >
               <Icon name="email" size={16} />
               <span>Contact support team</span>

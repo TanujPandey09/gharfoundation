@@ -1,19 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Icon from "@/components/shared/Icon";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useToast } from "@/lib/context/ToastContext";
 import { UserButton } from "@clerk/nextjs";
 
-export default function PostPropertyPage() {
+function PostPropertyContent() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [activeStep, setActiveStep] = useState(1); // Start at 1
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
 
   const [formData, setFormData] = useState({
       title: "",
@@ -45,6 +47,107 @@ export default function PostPropertyPage() {
       amenities: ["Power Backup", "Free WiFi"] as string[],
       imageUrls: [] as string[]
   });
+
+  useEffect(() => {
+    if (!editId) return;
+    fetch(`/api/properties/${editId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.id) {
+          setFormData({
+            title: data.title || "",
+            description: data.description || "",
+            rent: String(data.rent || ""),
+            deposit: String(data.deposit || ""),
+            maintenance: String(data.maintenance || "0"),
+            bedrooms: data.bedrooms ?? 1,
+            bathrooms: data.bathrooms ?? 1,
+            kitchen: data.kitchen ?? 1,
+            balcony: data.balcony ?? 0,
+            parking: Boolean(data.parking),
+            floor: data.floor ?? 0,
+            area: String(data.area || ""),
+            propertyType: data.propertyType || "BHK_1",
+            genderPreference: data.genderPreference || "ANY",
+            waterSupply: data.waterSupply || "24/7",
+            electricity: data.electricity || "24/7",
+            internet: Boolean(data.internet),
+            isFurnished: data.isFurnished || "SEMI_FURNISHED",
+            district: data.district || "Dehradun",
+            city: data.city || "Dehradun",
+            areaName: data.areaName || "",
+            address: data.address || "",
+            landmark: data.landmark || "",
+            pincode: data.pincode || "248001",
+            latitude: data.latitude ?? 30.3165,
+            longitude: data.longitude ?? 78.0322,
+            amenities: Array.isArray(data.amenities)
+              ? data.amenities.map((a: any) => (typeof a === "string" ? a : a.name))
+              : [],
+            imageUrls: Array.isArray(data.images)
+              ? data.images.map((img: any) => (typeof img === "string" ? img : img.url))
+              : [],
+          });
+        }
+      })
+      .catch((err) => console.error("Failed to load property for edit:", err));
+  }, [editId]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const uploaded: string[] = [];
+    for (const file of Array.from(files)) {
+      try {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.src = ev.target?.result as string;
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              const MAX_WIDTH = 1280;
+              let width = img.width;
+              let height = img.height;
+              if (width > MAX_WIDTH) {
+                height = Math.round((height * MAX_WIDTH) / width);
+                width = MAX_WIDTH;
+              }
+              canvas.width = width;
+              canvas.height = height;
+              canvas.getContext("2d")?.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", 0.75));
+            };
+            img.onerror = reject;
+          };
+          reader.onerror = reject;
+        });
+        try {
+          const uploadRes = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: dataUrl }),
+          });
+          if (uploadRes.ok) {
+            const uploadJson = await uploadRes.json();
+            uploaded.push(uploadJson.url || dataUrl);
+          } else {
+            uploaded.push(dataUrl);
+          }
+        } catch {
+          uploaded.push(dataUrl);
+        }
+      } catch (err) {
+        console.error("Failed to compress image:", err);
+      }
+    }
+    if (uploaded.length > 0) {
+      setFormData((prev) => ({ ...prev, imageUrls: [...prev.imageUrls, ...uploaded] }));
+      showToast(`${uploaded.length} photo(s) uploaded!`, "success");
+    }
+    e.target.value = "";
+  };
 
   const handleNext = () => {
       // Validate active step fields
@@ -172,8 +275,8 @@ export default function PostPropertyPage() {
               imageUrls: formData.imageUrls,
           };
 
-          const res = await fetch("/api/properties", {
-              method: "POST",
+          const res = await fetch(editId ? `/api/properties/${editId}` : "/api/properties", {
+              method: editId ? "PATCH" : "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
           });
@@ -187,7 +290,7 @@ export default function PostPropertyPage() {
               throw new Error(msg);
           }
 
-          showToast("Property published successfully!", "success");
+          showToast(editId ? "Property updated successfully!" : "Property published successfully!", "success");
           router.push("/dashboard");
       } catch (err: any) {
           console.error(err);
@@ -205,19 +308,21 @@ export default function PostPropertyPage() {
     <div className="flex flex-col md:flex-row h-screen bg-[#F8FAFC] font-sans overflow-hidden">
       
       {/* SIDEBAR (Desktop Only) */}
-      <div className="hidden md:flex w-[280px] bg-white/70 backdrop-blur-xl border-r border-slate-200/60 flex-col justify-between shrink-0 h-full z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+      <div className="hidden md:flex w-[270px] bg-white border-r border-[#EBEBEB] flex-col justify-between shrink-0 h-full z-10">
         <div>
-          <div className="p-4 sm:p-6 md:p-8 pb-6">
-            <h1 className="font-bold text-[22px] text-[#022c22] tracking-tight mb-1">EstatePro Wizard</h1>
+          <div className="p-5 pb-4">
+            <h1 className="font-bold text-xl text-[#222222] tracking-tight mb-1">
+              Ghar<span className="text-[#FF385C]">.</span> Listing Studio
+            </h1>
             <div className="flex items-center gap-2 mt-2">
-                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${calculateProgress()}%` }}></div>
+                <div className="flex-1 h-1.5 bg-[#F7F7F7] border border-[#EBEBEB] rounded-full overflow-hidden">
+                    <div className="h-full bg-[#FF385C] rounded-full transition-all duration-500" style={{ width: `${calculateProgress()}%` }}></div>
                 </div>
-                <span className="text-[11px] text-slate-500 font-bold tracking-wide">{calculateProgress()}%</span>
+                <span className="text-[11px] text-[#717171] font-bold tracking-wide">{calculateProgress()}%</span>
             </div>
           </div>
           
-          <nav className="space-y-1.5 px-4 mt-2">
+          <nav className="space-y-1 px-3 mt-1">
             <SidebarStep icon="info" label="Basic Details" step={1} currentStep={activeStep} onClick={() => setActiveStep(1)} />
             <SidebarStep icon="location_on" label="Location" step={2} currentStep={activeStep} onClick={() => setActiveStep(2)} />
             <SidebarStep icon="check_circle" label="Amenities" step={3} currentStep={activeStep} onClick={() => setActiveStep(3)} />
@@ -228,54 +333,53 @@ export default function PostPropertyPage() {
           </nav>
         </div>
 
-        <div className="p-6">
-            <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/50 flex gap-4 items-center">
-                <div className="w-10 h-10 bg-white shadow-sm border border-slate-200 rounded-full flex items-center justify-center shrink-0 text-emerald-600">
-                    <Icon name="check" size={20} />
+        <div className="p-4">
+            <div className="bg-[#F7F7F7] rounded-2xl p-3.5 border border-[#EBEBEB] flex gap-3 items-center">
+                <div className="w-9 h-9 bg-white border border-[#EBEBEB] rounded-full flex items-center justify-center shrink-0 text-[#008A05]">
+                    <Icon name="check" size={18} />
                 </div>
                 <div>
-                    <span className="text-[13px] font-bold text-slate-700 block">Draft Saved</span>
-                    <span className="text-[11px] font-medium text-slate-500">Auto-saves locally</span>
+                    <span className="text-xs font-bold text-[#222222] block">100% Free Listing</span>
+                    <span className="text-[11px] font-medium text-[#717171]">₹0 Brokerage Forever</span>
                 </div>
             </div>
         </div>
       </div>
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#FAFAFA]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F7F7F7]/60">
           
         {/* HEADER */}
-        <header className="h-[76px] bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-4 sm:px-8 shrink-0 sticky top-0 z-50">
-            <div className="font-bold text-[22px] text-[#022c22] tracking-tight flex items-center gap-2">
-                Ghar <span className="hidden sm:inline font-bold">Foundation</span> <span className="hidden sm:inline text-sm font-medium text-slate-400 font-sans tracking-normal ml-2">Property Wizard</span>
+        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-[#EBEBEB] flex items-center justify-between px-4 sm:px-8 shrink-0 sticky top-0 z-50">
+            <div className="font-extrabold text-xl text-[#222222] tracking-tight flex items-center gap-2">
+                Ghar<span className="text-[#FF385C]">.</span> <span className="hidden sm:inline text-xs font-bold uppercase tracking-wider text-[#717171] bg-[#F7F7F7] border border-[#EBEBEB] px-2.5 py-0.5 rounded-full ml-1">Post Property Free</span>
             </div>
             
             {/* Top Stepper for Mobile */}
             <div className="md:hidden flex flex-col items-center">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Step {activeStep} of 7</span>
-                <div className="w-24 h-1.5 bg-slate-200 rounded-full mt-1 overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(activeStep / 7) * 100}%` }}></div>
+                <span className="text-[10px] font-bold text-[#717171] uppercase tracking-widest">Step {activeStep} of 7</span>
+                <div className="w-24 h-1.5 bg-[#EBEBEB] rounded-full mt-1 overflow-hidden">
+                    <div className="h-full bg-[#FF385C] rounded-full" style={{ width: `${(activeStep / 7) * 100}%` }}></div>
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
-                <button onClick={() => router.push("/dashboard")} className="hidden sm:block text-[13px] font-bold text-slate-600 hover:text-slate-900 transition-colors">Exit</button>
-                <div className="border-l border-slate-200 pl-4">
+            <div className="flex items-center gap-3">
+                <button onClick={() => router.push("/dashboard")} className="btn-cta-secondary px-3.5 py-1.5 text-xs">Exit</button>
+                <div className="border-l border-[#EBEBEB] pl-3">
                     <UserButton afterSignOutUrl="/" />
                 </div>
             </div>
         </header>
 
-        
-
         <div className="flex-1 overflow-y-auto relative pb-24">
             
             {/* STEP 1: BASIC DETAILS */}
             {activeStep === 1 && (
-                <div className="max-w-[800px] mx-auto p-10">
-                    <div className="mb-8">
-                        <h2 className="text-[28px] font-bold text-[#022c22] tracking-tight mb-2">What are you listing?</h2>
-                        <p className="text-[14px] text-slate-500 font-medium">Provide the foundational details of your property to help tenants find exactly what they need.</p>
+                <div className="max-w-[820px] mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-8">
+                    <div className="hero-mesh-bg rounded-2xl border border-[#EBEBEB] p-4 sm:p-5 mb-5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF385C]">Step 1 of 7 · Property Configuration</span>
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-[#222222] tracking-tight mt-0.5">What are you listing?</h2>
+                        <p className="text-xs sm:text-sm text-[#717171] mt-1">Provide the foundational details of your property to help tenants find exactly what they need.</p>
                     </div>
 
                     <div className="space-y-6">
@@ -469,10 +573,11 @@ export default function PostPropertyPage() {
 
             {/* STEP 2: LOCATION */}
             {activeStep === 2 && (
-                <div className="max-w-[1000px] mx-auto p-10">
-                    <div className="mb-8">
-                        <h2 className="text-[28px] font-bold text-[#022c22] tracking-tight mb-2">Where is your property located?</h2>
-                        <p className="text-[14px] text-slate-500 font-medium">Specify the exact address and location details. This helps tenants find your property easily.</p>
+                <div className="max-w-[1000px] mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-8">
+                    <div className="hero-mesh-bg rounded-2xl border border-[#EBEBEB] p-4 sm:p-5 mb-5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF385C]">Step 2 of 7 · Address &amp; Locality</span>
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-[#222222] tracking-tight mt-0.5">Where is your property located?</h2>
+                        <p className="text-xs sm:text-sm text-[#717171] mt-1">Specify the exact address and location details. This helps tenants find your property easily.</p>
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-4 sm:p-6 md:p-8">
@@ -586,10 +691,11 @@ export default function PostPropertyPage() {
 
             {/* STEP 3: AMENITIES */}
             {activeStep === 3 && (
-                <div className="max-w-[800px] mx-auto p-10">
-                    <div className="mb-8">
-                        <h2 className="text-[28px] font-bold text-[#022c22] tracking-tight mb-2">Amenities & Facilities</h2>
-                        <p className="text-[14px] text-slate-500 font-medium">Select all the features available in your property to help premium tenants find you easily.</p>
+                <div className="max-w-[820px] mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-8">
+                    <div className="hero-mesh-bg rounded-2xl border border-[#EBEBEB] p-4 sm:p-5 mb-5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF385C]">Step 3 of 7 · Features</span>
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-[#222222] tracking-tight mt-0.5">Amenities &amp; Facilities</h2>
+                        <p className="text-xs sm:text-sm text-[#717171] mt-1">Select all the features available in your property to help verified tenants find you easily.</p>
                     </div>
 
                     <div className="space-y-10">
@@ -664,14 +770,26 @@ export default function PostPropertyPage() {
 
             {/* STEP 4: PHOTOS */}
             {activeStep === 4 && (
-                <div className="max-w-[1000px] mx-auto p-10">
-                    <div className="mb-8">
-                        <h2 className="text-[28px] font-bold text-[#022c22] tracking-tight mb-2">Photos & Videos</h2>
-                        <p className="text-[14px] text-slate-500 font-medium">Showcase your property. Enter image URLs below to render your property listing dynamically.</p>
+                <div className="max-w-[1000px] mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-8">
+                    <div className="hero-mesh-bg rounded-2xl border border-[#EBEBEB] p-4 sm:p-5 mb-5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF385C]">Step 4 of 7 · Media Gallery</span>
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-[#222222] tracking-tight mt-0.5">Photos &amp; Videos</h2>
+                        <p className="text-xs sm:text-sm text-[#717171] mt-1">Upload high-clarity room photos directly to ImageKit CDN or paste image URLs below.</p>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row gap-4 sm:p-6 md:p-8">
+                    <div className="flex flex-col lg:flex-row gap-4">
                         <div className="flex-1 space-y-6">
+                            {/* Direct Device File Upload Box */}
+                            <div className="bg-white border-2 border-dashed border-[#FF385C]/40 rounded-3xl p-6 sm:p-8 shadow-sm text-center hover:border-[#FF385C] transition-all">
+                                <Icon name="cloud_upload" size={36} className="text-[#FF385C] mx-auto mb-2" />
+                                <h3 className="text-[16px] font-bold text-[#222222] mb-1">Upload Photos from Device</h3>
+                                <p className="text-[12px] text-[#717171] font-medium mb-4">Select JPG/PNG photos from your phone or computer (auto-optimized via ImageKit).</p>
+                                <label className="btn-cta-primary px-6 py-3 text-[13px] cursor-pointer">
+                                    <Icon name="upload_file" size={18} /> Select Photos
+                                    <input type="file" accept="image/*" multiple onChange={handleFileUpload} className="hidden" />
+                                </label>
+                            </div>
+
                             {/* URL Add Box */}
                             <div className="bg-white/70 backdrop-blur-xl border border-slate-200/50 rounded-3xl p-6 sm:p-8 shadow-sm transition-all duration-300">
                                 <h3 className="flex items-center gap-2 text-[16px] font-bold text-[#022c22] mb-2">
@@ -768,10 +886,11 @@ export default function PostPropertyPage() {
 
             {/* STEP 5: PRICING */}
             {activeStep === 5 && (
-                <div className="max-w-[1000px] mx-auto p-10">
-                    <div className="mb-8">
-                        <h2 className="text-[28px] font-bold text-[#022c22] tracking-tight mb-2">Configure Pricing</h2>
-                        <p className="text-[14px] text-slate-500 font-medium">Define your monthly rent, security deposit, and other financial terms.</p>
+                <div className="max-w-[1000px] mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-8">
+                    <div className="hero-mesh-bg rounded-2xl border border-[#EBEBEB] p-4 sm:p-5 mb-5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF385C]">Step 5 of 7 · Rent &amp; Deposit</span>
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-[#222222] tracking-tight mt-0.5">Configure Pricing</h2>
+                        <p className="text-xs sm:text-sm text-[#717171] mt-1">Define your monthly rent, security deposit, and maintenance terms with zero brokerage.</p>
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-4 sm:p-6 md:p-8">
@@ -857,9 +976,10 @@ export default function PostPropertyPage() {
             
             {/* STEP 6: PREVIEW */}
             {activeStep === 6 && (
-                <div className="max-w-[1100px] mx-auto p-10">
-                    <div className="flex justify-between items-center mb-8">
-                        <h2 className="text-[28px] font-bold text-[#022c22] tracking-tight">Preview Listing</h2>
+                <div className="max-w-[1100px] mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-8">
+                    <div className="hero-mesh-bg rounded-2xl border border-[#EBEBEB] p-4 sm:p-5 mb-5">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF385C]">Step 6 of 7 · Live Preview</span>
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-[#222222] tracking-tight mt-0.5">Preview Listing</h2>
                     </div>
 
                     <div className="bg-white rounded-3xl border border-slate-200/60 overflow-hidden shadow-sm p-2 mb-8">
@@ -998,14 +1118,14 @@ export default function PostPropertyPage() {
 
             {/* STEP 7: PUBLISH */}
             {activeStep === 7 && (
-                <div className="max-w-[1000px] mx-auto p-10 pt-16">
-                    <div className="text-center mb-12">
-                        <div className="w-20 h-20 bg-[#EEF2FF] rounded-full flex items-center justify-center mx-auto mb-6">
-                            <Icon name="celebration" size={40} className="text-[#10b981]" />
+                <div className="max-w-[1000px] mx-auto px-4 sm:px-6 pt-4 sm:pt-6 pb-8">
+                    <div className="hero-mesh-bg rounded-2xl border border-[#EBEBEB] p-6 sm:p-8 text-center mb-6">
+                        <div className="w-16 h-16 bg-[#FFF0F3] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#FFD1D8]">
+                            <Icon name="celebration" size={32} className="text-[#FF385C]" />
                         </div>
-                        <h2 className="text-[36px] font-bold text-[#022c22] tracking-tight mb-4">You're ready to launch!</h2>
-                        <p className="text-[16px] text-slate-500 font-medium max-w-[500px] mx-auto leading-relaxed">
-                            Your luxury listing is ready. Review the listing summary below and click "Publish Listing" to publish it dynamically.
+                        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#222222] tracking-tight mb-2">You&apos;re ready to launch!</h2>
+                        <p className="text-xs sm:text-sm text-[#717171] max-w-[500px] mx-auto leading-relaxed">
+                            Your verified listing is ready. Review the summary below and click &ldquo;Publish Listing&rdquo; to go live immediately.
                         </p>
                     </div>
 
@@ -1088,28 +1208,25 @@ export default function PostPropertyPage() {
             )}
 
             {/* BOTTOM FIXED BAR */}
-            <div className="fixed bottom-0 left-0 md:left-[280px] right-0 bg-white/90 backdrop-blur-md border-t border-slate-200/60 p-4 sm:px-10 flex flex-col sm:flex-row items-center justify-between shadow-[0_-10px_20px_rgba(0,0,0,0.03)] z-50 gap-4 sm:gap-0">
+            <div className="fixed bottom-0 left-0 md:left-[270px] right-0 bg-white/95 backdrop-blur-md border-t border-[#EBEBEB] p-3.5 sm:px-8 flex flex-col sm:flex-row items-center justify-between shadow-[0_-8px_20px_rgba(0,0,0,0.04)] z-50 gap-3 sm:gap-0">
                 
                 {/* Left side: Back & Help */}
                 <div className="flex w-full sm:w-auto items-center justify-between sm:justify-start gap-4">
-                    <button onClick={handleBack} disabled={isSubmitting || activeStep === 1} className="border border-slate-200/60 bg-white text-slate-700 w-full sm:w-auto px-5 py-2.5 rounded-xl text-[13px] font-bold shadow-sm flex items-center justify-center gap-2 hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-30">
+                    <button onClick={handleBack} disabled={isSubmitting || activeStep === 1} className="btn-cta-secondary w-full sm:w-auto px-5 py-2.5 text-xs disabled:opacity-30">
                         <Icon name="arrow_back" size={16} /> Back
-                    </button>
-                    <button className="hidden sm:flex text-[13px] font-bold text-emerald-600 hover:text-emerald-700 items-center gap-1 transition-colors">
-                        <Icon name="help_outline" size={16} /> Help
                     </button>
                 </div>
                 
                 {/* Right side: Progress & Next */}
-                <div className="flex w-full sm:w-auto flex-col sm:flex-row items-center gap-3 sm:gap-6">
+                <div className="flex w-full sm:w-auto flex-col sm:flex-row items-center gap-3 sm:gap-5">
                     <div className="hidden sm:flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-[12px] font-bold text-slate-500">Progress: {calculateProgress()}% Complete</span>
+                        <div className="w-2 h-2 rounded-full bg-[#008A05] animate-pulse"></div>
+                        <span className="text-xs font-bold text-[#717171]">Progress: {calculateProgress()}% Complete</span>
                     </div>
                     <button 
                         onClick={activeStep === 7 ? handlePublish : handleNext} 
                         disabled={isSubmitting}
-                        className="bg-emerald-600 text-white w-full sm:w-auto px-8 py-2.5 rounded-xl text-[13.5px] font-bold shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-50"
+                        className="btn-cta-primary w-full sm:w-auto px-7 py-2.5 text-xs sm:text-sm disabled:opacity-50"
                     >
                         {isSubmitting ? "Publishing..." : activeStep === 7 ? "Publish Listing" : "Next Step"} <Icon name={activeStep === 7 ? "rocket_launch" : "arrow_forward"} size={16} />
                     </button>
@@ -1126,18 +1243,17 @@ export default function PostPropertyPage() {
 
 const SidebarStep = ({ icon, label, step, currentStep, onClick }: any) => {
     const isActive = step === currentStep;
-    const isCompleted = step < currentStep;
     
     return (
         <button 
             onClick={onClick}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-[13.5px] font-medium transition-colors text-left ${
+            className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-[13px] font-bold transition-all text-left active:scale-[0.98] ${
             isActive 
-                ? "bg-[#10b981] text-white shadow-md" 
-                : "text-slate-600 hover:bg-slate-200"
+                ? "bg-[#FFF0F3] text-[#FF385C]" 
+                : "text-[#717171] hover:bg-[#F7F7F7] hover:text-[#222222]"
             }`}
         >
-            <Icon name={icon} size={20} className={isActive ? "text-white" : "text-slate-500"} />
+            <Icon name={icon} size={18} className={isActive ? "text-[#FF385C]" : "text-[#717171]"} />
             <span>{label}</span>
         </button>
     );
@@ -1168,3 +1284,11 @@ const AmenityCard = ({ icon, label, isSelected }: any) => (
         </span>
     </div>
 );
+
+export default function PostPropertyPage() {
+  return (
+    <Suspense fallback={<div className="h-screen w-full flex items-center justify-center text-slate-500">Loading Property Wizard...</div>}>
+      <PostPropertyContent />
+    </Suspense>
+  );
+}

@@ -552,14 +552,14 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
       {/* ===================================================================== */}
       {/* 2. DESKTOP DETAILS VIEW (>= lg) — AIRBNB 5-PHOTO COLLAGE              */}
       {/* ===================================================================== */}
-      <div className="hidden lg:block max-w-[1320px] mx-auto px-6 lg:px-12 py-8 space-y-8">
+      <div className="hidden lg:block max-w-[1320px] mx-auto px-6 lg:px-12 pt-4 pb-10 space-y-6">
         
         {/* Header Strip */}
         <div>
-          <div className="flex justify-between items-start gap-4 mb-2">
+          <div className="flex justify-between items-start gap-4 mb-1">
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="font-sans font-extrabold text-3xl xl:text-4xl text-[#222222] tracking-tight">
+                <h1 className="font-sans font-extrabold text-2xl xl:text-3xl text-[#222222] tracking-tight">
                   {property.title}
                 </h1>
                 {property.isVerified && (
@@ -569,7 +569,7 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
                   </span>
                 )}
               </div>
-              <p className="flex items-center gap-1.5 text-xs text-[#717171] mt-2 font-semibold">
+              <p className="flex items-center gap-1.5 text-xs text-[#717171] mt-1.5 font-semibold">
                 <Icon name="place" size={16} className="text-[#FF385C]" />
                 <span>{property.address}, {property.city}</span>
                 <span className="mx-1">·</span>
@@ -580,17 +580,17 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
             <div className="flex items-center gap-2">
               <button
                 onClick={handleShare}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#DDDDDD] hover:border-[#222222] text-xs font-bold text-[#222222] transition-colors"
+                className="btn-cta-secondary px-4 py-2 text-xs"
               >
                 <Icon name="share" size={15} />
                 <span>Share</span>
               </button>
               <button
                 onClick={handleFavoriteToggle}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs font-bold transition-colors ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl border text-xs font-bold transition-all active:scale-[0.98] ${
                   isFavorite
                     ? "border-[#FF385C] text-[#FF385C] bg-[#FFF0F2]"
-                    : "border-[#DDDDDD] hover:border-[#222222] text-[#222222]"
+                    : "border-[#DDDDDD] hover:border-[#222222] text-[#222222] bg-white hover:bg-[#F7F7F7]"
                 }`}
               >
                 <Icon name="favorite" size={15} fill={isFavorite} className={isFavorite ? "text-[#FF385C]" : "text-[#717171]"} />
@@ -848,12 +848,20 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
 
               {/* Action CTAs */}
               <div className="space-y-2.5">
+                <button
+                  onClick={handleOpenTourModal}
+                  className="btn-cta-primary w-full text-xs py-3.5 px-4"
+                >
+                  <Icon name="event" size={16} />
+                  <span>Schedule Physical Visit</span>
+                </button>
+
                 <a
                   href={`https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hi ${safeOwner.name || "Owner"}, I am interested in your property on Ghar Foundation: ${property.title}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={handleWhatsAppClick}
-                  className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+                  className="btn-cta-whatsapp w-full text-xs py-3.5 px-4"
                 >
                   <Icon name="chat" size={16} className="text-white" />
                   <span>Chat on WhatsApp</span>
@@ -861,19 +869,11 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
 
                 <a
                   href={`tel:+${cleanPhone}`}
-                  className="w-full border border-[#222222] hover:bg-[#F7F7F7] text-[#222222] font-bold text-xs py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+                  className="btn-cta-secondary w-full text-xs py-3.5 px-4"
                 >
                   <Icon name="call" size={16} />
                   <span>Call Owner (+{cleanPhone})</span>
                 </a>
-
-                <button
-                  onClick={handleOpenTourModal}
-                  className="w-full bg-[#FF385C] hover:bg-[#E00B41] text-white font-bold text-xs py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
-                >
-                  <Icon name="event" size={16} />
-                  <span>Schedule Physical Visit</span>
-                </button>
               </div>
 
               <p className="text-[10px] text-[#717171] text-center font-medium leading-relaxed">

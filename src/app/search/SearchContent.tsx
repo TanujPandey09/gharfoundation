@@ -163,12 +163,12 @@ export default function SearchContent() {
   };
 
   return (
-    <div className="bg-white text-[#222222] flex flex-col h-[calc(100vh-4.5rem)] overflow-hidden">
+    <div className="bg-white text-[#222222] flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
       
       {/* ===================================================================== */}
       {/* 1. TOP STICKY SEARCH & FILTER BAR (AIRBNB + HOUSING.COM HYBRID)       */}
       {/* ===================================================================== */}
-      <section className="sticky top-0 z-30 bg-white border-b border-[#EBEBEB] px-4 md:px-8 py-3 space-y-3 shrink-0 shadow-sm">
+      <section className="sticky top-0 z-20 bg-white border-b border-[#EBEBEB] px-4 md:px-8 py-2.5 space-y-2 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
         <div className="max-w-[1440px] mx-auto flex flex-wrap items-center gap-3">
 
           {/* Location Search Box */}
@@ -346,7 +346,7 @@ export default function SearchContent() {
           {/* Search Button (Airbnb Rausch) */}
           <button
             onClick={handleUpdateSearch}
-            className="bg-[#FF385C] hover:bg-[#E00B41] text-white px-5 py-2.5 rounded-full font-sans text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shrink-0 active:scale-95"
+            className="btn-cta-primary px-5 py-2.5 text-xs shrink-0"
           >
             <Icon name="search" size={16} className="text-white" />
             <span>Search</span>

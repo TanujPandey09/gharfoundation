@@ -51,7 +51,7 @@ export async function sendPropertyApprovedEmail(ownerEmail: string, ownerName: s
       <h2 style="color: #064e3b;">Hello ${ownerName},</h2>
       <p>Great news! Your listing <strong>"${propertyTitle}"</strong> has passed verification checks and is now live on our platform.</p>
       <p>Renters in Uttarakhand can now contact you directly via Phone, Chat, or WhatsApp.</p>
-      <a href="https://gharfoundation.com/dashboard" style="background-color: #064e3b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; margin-top: 15px;">Manage Listing</a>
+      <a href="https://gharfoundation.vercel.app/dashboard" style="background-color: #064e3b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; margin-top: 15px;">Manage Listing</a>
       <p style="margin-top: 30px; font-size: 11px; color: #6b7280;">Best regards,<br/>The Ghar Foundation Admin Team</p>
     </div>
   `;

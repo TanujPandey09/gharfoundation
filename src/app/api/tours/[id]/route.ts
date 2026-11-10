@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { UpdateTourSchema } from "@/lib/validations/tour";
+import { dispatchSystemNotification } from "@/lib/services/notifications";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -43,6 +44,15 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         ...(validated.completedDate && { completedDate: new Date(validated.completedDate) }),
       },
     });
+
+    if (validated.status && tour.userId !== userId) {
+      await dispatchSystemNotification({
+        userId: tour.userId,
+        title: `Tour Visit ${validated.status}`,
+        body: `Your visit request for "${tour.property.title}" has been ${validated.status.toLowerCase()}.`,
+        type: "APPROVAL",
+      });
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

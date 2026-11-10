@@ -10,7 +10,18 @@ const HIDE_LAYOUT_ROUTES = [
   "/login",
   "/signup",
   "/onboarding",
-  "/sso-callback"
+  "/sso-callback",
+  "/post-property",
+  "/dashboard",
+  "/documents",
+  "/favorites",
+  "/leads",
+  "/messages",
+  "/payments",
+  "/properties",
+  "/schedule",
+  "/settings",
+  "/analytics"
 ];
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {

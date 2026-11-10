@@ -55,16 +55,23 @@ export default function ContactPage() {
   ];
 
   return (
-    <div className="bg-white text-[#222222] min-h-screen font-sans py-12 md:py-20">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-12">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h1 className="font-display font-extrabold text-[2.25rem] tracking-tight text-[#222222]">
+    <div className="bg-white text-[#222222] min-h-screen font-sans">
+      <div className="hero-mesh-bg border-b border-[#EBEBEB] pt-5 pb-7 sm:pt-8 sm:pb-10">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-8 text-center">
+          <span className="inline-flex items-center gap-1.5 bg-white/90 border border-[#FFD1D8] text-[#FF385C] text-xs font-bold px-3 py-1 rounded-full mb-3">
+            <Icon name="support_agent" size={14} />
+            <span>Dehradun &amp; Uttarakhand Help Desk</span>
+          </span>
+          <h1 className="font-display font-extrabold text-2xl sm:text-4xl tracking-tight text-[#222222]">
             Get in touch
           </h1>
-          <p className="mt-3 text-[#717171] text-sm sm:text-base leading-relaxed">
+          <p className="mt-2 text-[#717171] max-w-2xl mx-auto text-xs sm:text-base leading-relaxed">
             Have questions about listing your property, verifying your profile, or generating digital rental agreements? We are here to help.
           </p>
         </div>
+      </div>
+
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-8 sm:py-12">
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-14">
           {/* Contact Details */}
@@ -160,7 +167,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#FF385C] hover:bg-[#E00B41] text-white py-3.5 rounded-xl text-xs font-bold shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="btn-cta-primary w-full py-3.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>

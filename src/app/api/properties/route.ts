@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth, ensureUserInDb } from "@/lib/auth";
 import { CreatePropertySchema } from "@/lib/validations/property";
 import { getProperties } from "@/lib/services/properties";
+import { dispatchSystemNotification } from "@/lib/services/notifications";
 import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
@@ -58,6 +59,13 @@ export async function POST(request: NextRequest) {
           select: { id: true, name: true, image: true, role: true },
         },
       },
+    });
+
+    await dispatchSystemNotification({
+      userId,
+      title: "Property Published Live",
+      body: `"${property.title}" in ${property.city} is now live on Ghar Foundation.`,
+      type: "APPROVAL",
     });
 
     return NextResponse.json({ success: true, data: property }, { status: 201 });

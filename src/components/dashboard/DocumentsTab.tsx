@@ -83,18 +83,18 @@ export default function DocumentsTab() {
   };
 
   return (
-    <div className="w-full p-4 sm:p-6 md:p-8 space-y-8 max-w-6xl mx-auto">
+    <div className="w-full p-3.5 sm:p-5 space-y-5 max-w-[1320px] mx-auto">
       {/* Header */}
-      <div>
+      <div className="hero-mesh-bg rounded-2xl border border-[#EBEBEB] p-4 sm:p-5">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#FF385C] bg-rausch-100 px-3 py-1 rounded-full">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF385C] bg-white/90 border border-[#FFD1D8] px-3 py-0.5 rounded-full">
             Legal &amp; KYC Center
           </span>
         </div>
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-[#222222] tracking-tight mt-2">
+        <h1 className="font-display font-extrabold text-xl sm:text-2xl text-[#222222] tracking-tight mt-2">
           Verification &amp; Documents
         </h1>
-        <p className="text-sm text-[#717171] mt-1 max-w-2xl">
+        <p className="text-xs sm:text-sm text-[#717171] mt-1 max-w-2xl">
           Manage your Aadhaar identity verification, official Uttarakhand Police tenant forms, and 11-month registered rental agreements.
         </p>
       </div>
@@ -178,7 +178,7 @@ export default function DocumentsTab() {
               <button
                 type="button"
                 onClick={() => setIsAadhaarModalOpen(true)}
-                className="px-4 py-2 border border-[#EBEBEB] hover:bg-[#F7F7F7] text-[#222222] font-semibold text-xs rounded-xl transition-colors"
+                className="btn-cta-secondary px-4 py-2 text-xs"
               >
                 View Certificate
               </button>
@@ -186,7 +186,7 @@ export default function DocumentsTab() {
               <button
                 type="button"
                 onClick={() => setIsAadhaarModalOpen(true)}
-                className="px-5 py-2.5 bg-[#FF385C] hover:bg-[#E00B41] text-white font-bold text-xs rounded-xl shadow-sm transition-transform active:scale-95 flex items-center gap-1.5"
+                className="btn-cta-primary px-5 py-2.5 text-xs"
               >
                 <Icon name="security" size={16} />
                 <span>Verify Aadhaar Now</span>

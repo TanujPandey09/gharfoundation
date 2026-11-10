@@ -160,6 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setDbSynced(false);
     localStorage.removeItem("ghar_guest_user");
     document.cookie = "clerk_bypass=; path=/; max-age=0";
+    document.cookie = "ghar_phone_uid=; path=/; max-age=0";
   }, [isSignedIn, clerk]);
 
   const updateProfile = useCallback(async (data: Partial<User>) => {
@@ -188,6 +189,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updated = { ...guestUser, ...data } as User;
       setGuestUser(updated);
       localStorage.setItem("ghar_guest_user", JSON.stringify(updated));
+      if (guestUser.id?.startsWith("usr_phone_")) {
+        try {
+          const res = await fetch("/api/user", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          if (res.ok) {
+            const dbUpdated = await res.json();
+            setGuestUser(dbUpdated);
+            localStorage.setItem("ghar_guest_user", JSON.stringify(dbUpdated));
+          }
+        } catch {
+          // Non-blocking fallback
+        }
+      }
     }
   }, [isSignedIn, clerkUser, guestUser]);
 

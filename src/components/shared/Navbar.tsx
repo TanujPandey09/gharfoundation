@@ -57,20 +57,20 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#EBEBEB] px-4 md:px-8 lg:px-12 py-3 transition-colors">
-        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-30 h-16 bg-white/95 backdrop-blur-md border-b border-[#EBEBEB] px-4 md:px-8 lg:px-12 flex items-center transition-colors">
+        <div className="max-w-[1440px] w-full mx-auto flex items-center justify-between gap-4">
           
           {/* 1. Left: Brand Logo (Airbnb & Housing.com Inspired) */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 rounded-xl bg-[#FF385C] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
-                <Icon name="home_work" size={20} className="text-white" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF385C] to-[#E00B41] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+                <Icon name="home_work" size={18} className="text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="font-sans font-extrabold text-xl md:text-[22px] tracking-tight text-[#222222] leading-none">
+                <span className="font-sans font-extrabold text-lg md:text-[21px] tracking-tight text-[#222222] leading-none">
                   Ghar<span className="text-[#FF385C]">.</span>
                 </span>
-                <span className="text-[10px] font-bold text-forest-700 uppercase tracking-wider mt-0.5 hidden sm:inline">
+                <span className="text-[9px] font-bold text-[#008A05] uppercase tracking-wider mt-0.5 hidden sm:inline">
                   Zero Brokerage
                 </span>
               </div>
@@ -354,14 +354,14 @@ export const Navbar: React.FC = () => {
                   <Link
                     href="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="py-2.5 text-center text-xs font-bold text-[#222222] border border-[#EBEBEB] rounded-xl hover:bg-[#F7F7F7]"
+                    className="btn-cta-secondary py-2.5 text-center text-xs"
                   >
                     Log In
                   </Link>
                   <Link
                     href="/signup"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="py-2.5 text-center text-xs font-bold text-white bg-[#FF385C] rounded-xl shadow-sm"
+                    className="btn-cta-primary py-2.5 text-center text-xs"
                   >
                     Sign Up
                   </Link>

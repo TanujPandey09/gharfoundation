@@ -5,13 +5,24 @@ import type { NextRequest } from "next/server";
 // Define protected/private routes
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
-  "/post-property(.*)"
+  "/post-property(.*)",
+  "/documents(.*)",
+  "/favorites(.*)",
+  "/leads(.*)",
+  "/messages(.*)",
+  "/payments(.*)",
+  "/properties(.*)",
+  "/schedule(.*)",
+  "/settings(.*)",
+  "/analytics(.*)",
+  "/onboarding(.*)"
 ]);
 
 const clerkHandler = clerkMiddleware(async (auth, req: NextRequest) => {
-  // Allow clerk_bypass ONLY in non-production local development/testing
+  // Allow clerk_bypass in dev or authenticated mobile OTP session (ghar_phone_uid)
   const isDev = process.env.NODE_ENV !== "production";
-  const isBypass = isDev && req.cookies.get("clerk_bypass")?.value === "true";
+  const hasPhoneSession = Boolean(req.cookies.get("ghar_phone_uid")?.value);
+  const isBypass = hasPhoneSession || (isDev && req.cookies.get("clerk_bypass")?.value === "true");
   
   if (isProtectedRoute(req) && !isBypass) {
     await auth.protect();

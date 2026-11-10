@@ -47,21 +47,23 @@ export default function SafetyTipsPage() {
   ];
 
   return (
-    <div className="bg-white text-[#222222] min-h-screen font-sans py-16 md:py-24">
-      <div className="max-w-[1200px] mx-auto px-6 md:px-12">
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-16 md:mb-20">
-          <span className="text-[#C13515] text-xs font-bold uppercase tracking-wider bg-[#FFF1F0] text-[#C13515] px-3.5 py-1.5 rounded-full inline-flex items-center gap-1">
+    <div className="bg-white text-[#222222] min-h-screen font-sans">
+      <div className="hero-mesh-bg border-b border-[#EBEBEB] pt-5 pb-7 sm:pt-8 sm:pb-10">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-8 text-center">
+          <span className="text-[#C13515] text-xs font-bold uppercase tracking-wider bg-white/90 border border-[#FEE2E2] px-3.5 py-1 rounded-full inline-flex items-center gap-1">
             <Icon name="gavel" size={14} />
             Safety center
           </span>
-          <h1 className="mt-4 font-display font-extrabold text-[2.25rem] tracking-tight text-[#222222]">
+          <h1 className="mt-3 font-display font-extrabold text-2xl sm:text-4xl tracking-tight text-[#222222]">
             Safe renting guidelines
           </h1>
-          <p className="mt-3 text-[#717171] text-sm sm:text-base leading-relaxed">
+          <p className="mt-2 text-[#717171] max-w-2xl mx-auto text-xs sm:text-base leading-relaxed">
             Your safety and trust are our top priorities. Follow these simple tips to secure a happy and scam-free rental experience in Uttarakhand.
           </p>
         </div>
+      </div>
+
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-8 py-8 sm:py-12">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* For Renters */}

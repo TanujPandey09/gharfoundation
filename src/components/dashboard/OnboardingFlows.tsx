@@ -1,454 +1,494 @@
-import React, { useState } from "react";
-import Icon from "@/components/shared/Icon";
+"use client";
 
-interface OnboardingFlowsProps {
-    user: any;
-    onRefresh: () => void;
-    showToast: (msg: string, type: "success" | "error" | "info") => void;
-    onCloseOwnerOnboarding?: () => void;
-    forceOwnerOnboardingOpen?: boolean;
-}
+import React, { useState, useEffect } from "react";
+import { Icon } from "@/components/shared/Icon";
 
-export const OnboardingFlows: React.FC<OnboardingFlowsProps> = ({
-    user,
-    onRefresh,
-    showToast,
-    onCloseOwnerOnboarding,
-    forceOwnerOnboardingOpen = false,
-}) => {
-    const [showChoice, setShowChoice] = useState(user?.onboardingStatus === "NOT_STARTED" && !forceOwnerOnboardingOpen);
-    const [showOwnerStep, setShowOwnerStep] = useState(forceOwnerOnboardingOpen);
-    const [step, setStep] = useState(1);
-    const [loading, setLoading] = useState(false);
+export const OnboardingFlows = ({
+  user,
+  onRefresh,
+  showToast,
+  forceOwnerOnboardingOpen = false,
+  onCloseOwnerOnboarding,
+}: any) => {
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
-    // Form states
-    const [phone, setPhone] = useState(user?.phone || "");
-    const [code, setCode] = useState("");
-    const [codeSent, setCodeSent] = useState(false);
-    const [ownerType, setOwnerType] = useState("PRIVATE_OWNER");
-    const [businessName, setBusinessName] = useState("");
-    const [companyName, setCompanyName] = useState("");
-    const [licenseNumber, setLicenseNumber] = useState("");
-    const [propertyTitle, setPropertyTitle] = useState("");
-    const [propertyRent, setPropertyRent] = useState("");
-    const [propertyType, setPropertyType] = useState("BHK_1");
+  // Renter State
+  const [preferredCity, setPreferredCity] = useState("Dehradun");
+  const [preferredArea, setPreferredArea] = useState("Rajpur Road");
+  const [budgetMax, setBudgetMax] = useState("15000");
+  const [propertyTypes, setPropertyTypes] = useState<string[]>(["APARTMENT"]);
 
-    // Step 1: Phone Verification
-    const sendVerificationCode = () => {
-        if (!phone) {
-            showToast("Please enter a valid phone number", "error");
-            return;
-        }
-        setCodeSent(true);
-        showToast("Verification code sent to " + phone, "success");
-    };
+  // Owner State
+  const [ownerType, setOwnerType] = useState("PRIVATE_OWNER");
+  const [businessName, setBusinessName] = useState("");
+  const [phone, setPhone] = useState(user?.phone || "");
+  const [city, setCity] = useState("Dehradun");
+  const [companyName, setCompanyName] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [propertyTitle, setPropertyTitle] = useState("");
+  const [propertyRent, setPropertyRent] = useState("");
 
-    const verifyCode = () => {
-        if (code === "1234" || code === "123456" || code.length >= 4) {
-            showToast("Phone verified successfully!", "success");
-            setStep(2);
-        } else {
-            showToast("Invalid verification code. Try '1234'", "error");
-        }
-    };
+  useEffect(() => {
+    if (forceOwnerOnboardingOpen) {
+      setStep(1);
+      setDismissed(false);
+    }
+  }, [forceOwnerOnboardingOpen]);
 
-    // Skip / Default Search Choice
-    const handleSelectTenant = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch("/api/user/tenant-profile", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ preferredCity: "Dehradun" }),
-            });
-            if (res.ok) {
-                showToast("Welcome to GharFoundation!", "success");
-                setShowChoice(false);
-                onRefresh();
-            } else {
-                throw new Error();
-            }
-        } catch {
-            showToast("Failed to initialize profile", "error");
-        } finally {
-            setLoading(false);
-        }
-    };
+  if (!user || dismissed) return null;
 
-    const handleSkip = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch("/api/user", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ onboardingStatus: "COMPLETED", activeWorkspace: "SEARCH" }),
-            });
-            if (res.ok) {
-                setShowChoice(false);
-                onRefresh();
-            } else {
-                throw new Error();
-            }
-        } catch {
-            showToast("Failed to save preference", "error");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const isOwnerFlow =
+    forceOwnerOnboardingOpen ||
+    (user.role === "OWNER" &&
+      user.onboardingStatus !== "COMPLETED" &&
+      user.onboardingStatus !== "VERIFIED");
 
-    const handleStartOwnerOnboarding = () => {
-        setShowChoice(false);
-        setShowOwnerStep(true);
-        setStep(1);
-    };
+  const isRenterFlow =
+    !isOwnerFlow &&
+    user.role === "RENTER" &&
+    user.onboardingStatus !== "COMPLETED";
 
-    // Submit final owner profile
-    const handleSubmitOwner = async () => {
-        setLoading(true);
-        try {
-            // First, create the owner profile
-            const res = await fetch("/api/user/owner-profile", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ownerType,
-                    businessName: businessName || null,
-                    companyName: companyName || null,
-                    licenseNumber: licenseNumber || null,
-                }),
-            });
+  if (!isRenterFlow && !isOwnerFlow) return null;
 
-            if (!res.ok) throw new Error("Failed to create owner profile");
+  const handleClose = () => {
+    setDismissed(true);
+    if (onCloseOwnerOnboarding) onCloseOwnerOnboarding();
+  };
 
-            // Optional: Add first property draft
-            if (propertyTitle && propertyRent) {
-                await fetch("/api/properties", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        title: propertyTitle,
-                        rent: parseFloat(propertyRent),
-                        deposit: parseFloat(propertyRent) * 2,
-                        propertyType,
-                        district: "Dehradun",
-                        city: "Dehradun",
-                        locality: "Rajpur Road",
-                        area: 1200,
-                        bedrooms: 2,
-                        bathrooms: 2,
-                        description: "Onboarding draft listing.",
-                        isVerified: false,
-                    }),
-                });
-            }
+  const handlePropertyTypeToggle = (type: string) => {
+    if (propertyTypes.includes(type)) {
+      if (propertyTypes.length > 1) {
+        setPropertyTypes(propertyTypes.filter((t) => t !== type));
+      }
+    } else {
+      setPropertyTypes([...propertyTypes, type]);
+    }
+  };
 
-            showToast("Owner Profile verified successfully! Welcome to Hosting Workspace.", "success");
-            setShowOwnerStep(false);
-            if (onCloseOwnerOnboarding) onCloseOwnerOnboarding();
-            onRefresh();
-        } catch (err: any) {
-            showToast(err.message || "Failed to complete onboarding", "error");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleSubmitRenter = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: "RENTER",
+          preferredCity,
+          preferredArea,
+          budgetMax,
+          propertyTypes,
+        }),
+      });
+      if (res.ok) {
+        showToast("Preferences saved! Welcome to Ghar Foundation.", "success");
+        setDismissed(true);
+        onRefresh();
+      } else {
+        showToast("Failed to save preferences.", "error");
+      }
+    } catch {
+      showToast("Error saving preferences.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <>
-            {/* 1. INITIAL CHOICE MODAL */}
-            {showChoice && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-100 flex flex-col relative animate-in fade-in zoom-in-95 duration-200">
-                        <div className="text-center mb-8">
-                            <h2 className="text-2xl font-extrabold text-[#022c22] tracking-tight">Welcome to GharFoundation</h2>
-                            <p className="text-slate-500 text-sm font-semibold mt-2">What would you like to do today?</p>
-                        </div>
+  const handleSubmitOwner = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: "OWNER",
+          ownerType,
+          businessName,
+          phone,
+          city,
+          companyName,
+          licenseNumber,
+          propertyTitle,
+          propertyRent,
+        }),
+      });
+      if (res.ok) {
+        showToast("Host workspace activated!", "success");
+        setDismissed(true);
+        if (onCloseOwnerOnboarding) onCloseOwnerOnboarding();
+        onRefresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || "Failed to complete onboarding.", "error");
+      }
+    } catch {
+      showToast("Error submitting onboarding.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                        <div className="space-y-4">
-                            <button
-                                onClick={handleSelectTenant}
-                                disabled={loading}
-                                className="w-full flex items-center gap-4 p-5 rounded-2xl border border-slate-200 hover:border-[#022c22] hover:bg-slate-50/50 text-left transition-all group active:scale-[0.99]"
-                            >
-                                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-[#022c22] group-hover:text-white transition-all">
-                                    <Icon name="home" size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-800 text-[15px]">🏠 Find a Home</h3>
-                                    <p className="text-xs text-slate-500 font-semibold mt-0.5">Browse property listings in Uttarakhand immediately.</p>
-                                </div>
-                            </button>
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+      {/* ================================================================= */}
+      {/* RENTER ONBOARDING MODAL — COMPACT & ZERO DESKTOP SCROLL           */}
+      {/* ================================================================= */}
+      {isRenterFlow && (
+        <div className="bg-white rounded-2xl w-full max-w-lg border border-[#EBEBEB] shadow-2xl overflow-hidden text-[#222222]">
+          {/* Header */}
+          <div className="hero-mesh-bg px-6 py-4 border-b border-[#EBEBEB] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#FF385C] text-white flex items-center justify-center shadow-sm">
+                <Icon name="home" size={20} />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF385C]">
+                  Step {step} of 2 · Quick Setup
+                </span>
+                <h3 className="text-base font-extrabold text-[#222222]">
+                  Personalize Your Rental Feed
+                </h3>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-8 h-8 rounded-full bg-white border border-[#EBEBEB] text-[#717171] hover:text-[#222222] flex items-center justify-center transition-colors"
+              title="Skip for now"
+            >
+              <Icon name="close" size={16} />
+            </button>
+          </div>
 
-                            <button
-                                onClick={handleStartOwnerOnboarding}
-                                disabled={loading}
-                                className="w-full flex items-center gap-4 p-5 rounded-2xl border border-slate-200 hover:border-[#022c22] hover:bg-slate-50/50 text-left transition-all group active:scale-[0.99]"
-                            >
-                                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-[#022c22] group-hover:text-white transition-all">
-                                    <Icon name="domain" size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-800 text-[15px]">🏢 List My Property</h3>
-                                    <p className="text-xs text-slate-500 font-semibold mt-0.5">Start listing rooms, flats or commercial rentals.</p>
-                                </div>
-                            </button>
+          {/* Body */}
+          <div className="p-6">
+            {step === 1 && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                      Preferred City
+                    </label>
+                    <select
+                      value={preferredCity}
+                      onChange={(e) => setPreferredCity(e.target.value)}
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl py-2.5 px-3.5 text-xs font-bold text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222]"
+                    >
+                      {["Dehradun", "Rishikesh", "Nainital", "Mussoorie", "Haridwar", "Haldwani"].map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                            <button
-                                onClick={() => showToast("Broker/Agency registration details are coming soon!", "info")}
-                                disabled={loading}
-                                className="w-full flex items-center gap-4 p-5 rounded-2xl border border-slate-200 hover:border-[#022c22] hover:bg-slate-50/50 text-left transition-all group active:scale-[0.99]"
-                            >
-                                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:bg-[#022c22] group-hover:text-white transition-all">
-                                    <Icon name="handshake" size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-800 text-[15px]">🤝 Broker / Agency</h3>
-                                    <p className="text-xs text-slate-500 font-semibold mt-0.5">Access enterprise tools for team management. <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-full font-bold ml-1">Soon</span></p>
-                                </div>
-                            </button>
-                        </div>
-
-                        <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
-                            <button
-                                onClick={handleSkip}
-                                disabled={loading}
-                                className="text-slate-400 hover:text-slate-700 text-xs font-bold transition-colors"
-                            >
-                                Skip for now
-                            </button>
-                        </div>
-                    </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                      Preferred Locality
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Rajpur Road, Tapovan"
+                      value={preferredArea}
+                      onChange={(e) => setPreferredArea(e.target.value)}
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl py-2.5 px-3.5 text-xs font-medium text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222]"
+                    />
+                  </div>
                 </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                    Max Monthly Rent Budget (₹)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="15000"
+                    value={budgetMax}
+                    onChange={(e) => setBudgetMax(e.target.value)}
+                    className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl py-2.5 px-3.5 text-xs font-bold text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222]"
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-xs font-bold text-[#717171] hover:text-[#222222] px-3 py-2"
+                  >
+                    Skip for now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="btn-cta-primary px-6 py-2.5 text-xs"
+                  >
+                    <span>Next Step</span>
+                    <Icon name="arrow_forward" size={15} />
+                  </button>
+                </div>
+              </div>
             )}
 
-            {/* 2. GUIDED OWNER STEPPER */}
-            {showOwnerStep && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-100 flex flex-col relative animate-in fade-in zoom-in-95 duration-200">
-                        {/* Stepper Progress bar */}
-                        <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-5">
-                            <div>
-                                <h3 className="font-extrabold text-[#022c22] text-lg">Owner Onboarding</h3>
-                                <p className="text-xs text-slate-500 font-semibold mt-0.5">Step {step} of 4</p>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                {[1, 2, 3, 4].map((s) => (
-                                    <div
-                                        key={s}
-                                        className={`w-3.5 h-1.5 rounded-full transition-all ${s <= step ? "bg-[#022c22]" : "bg-slate-100"
-                                            }`}
-                                    ></div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* STEP 1: Phone Verification */}
-                        {step === 1 && (
-                            <div className="space-y-6">
-                                <div>
-                                    <h4 className="font-bold text-slate-800 text-[15px]">Verify Phone Number</h4>
-                                    <p className="text-xs text-slate-500 mt-1">Provide a mobile contact number to prevent fraudulent verification attempts.</p>
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">+91</span>
-                                        <input
-                                            type="tel"
-                                            placeholder="Enter mobile number"
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-xs font-medium focus:outline-none focus:border-[#022c22] transition-all"
-                                        />
-                                    </div>
-                                    {!codeSent ? (
-                                        <button
-                                            onClick={sendVerificationCode}
-                                            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-xs font-bold transition-all"
-                                        >
-                                            Send Verification Code
-                                        </button>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            <input
-                                                type="text"
-                                                placeholder="Enter 4-digit code (e.g., 1234)"
-                                                value={code}
-                                                onChange={(e) => setCode(e.target.value)}
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-medium focus:outline-none focus:border-[#022c22] transition-all text-center tracking-widest"
-                                            />
-                                            <button
-                                                onClick={verifyCode}
-                                                className="w-full bg-[#022c22] hover:bg-[#15345a] text-white py-3 rounded-xl text-xs font-bold transition-all shadow-sm"
-                                            >
-                                                Verify Code & Continue
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* STEP 2: Business Profile */}
-                        {step === 2 && (
-                            <div className="space-y-6">
-                                <div>
-                                    <h4 className="font-bold text-slate-800 text-[15px]">Configure Portfolio Settings</h4>
-                                    <p className="text-xs text-slate-500 mt-1">Specify your registration scope on the platform.</p>
-                                </div>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Registration Type</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {["PRIVATE_OWNER", "BROKER", "AGENCY"].map((type) => (
-                                                <button
-                                                    key={type}
-                                                    onClick={() => setOwnerType(type)}
-                                                    className={`py-2 px-3 border rounded-xl text-xs font-bold transition-all ${ownerType === type
-                                                            ? "border-[#022c22] bg-[#022c22]/5 text-[#022c22]"
-                                                            : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                                                        }`}
-                                                >
-                                                    {type.replace("_", " ")}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {ownerType !== "PRIVATE_OWNER" && (
-                                        <>
-                                            <div>
-                                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Company Name</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="e.g. Elite Realty"
-                                                    value={companyName}
-                                                    onChange={(e) => setCompanyName(e.target.value)}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-medium focus:outline-none focus:border-[#022c22] transition-all"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Commercial License / RERA ID</label>
-                                                <input
-                                                    type="text"
-                                                    placeholder="e.g. REC-10294"
-                                                    value={licenseNumber}
-                                                    onChange={(e) => setLicenseNumber(e.target.value)}
-                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-medium focus:outline-none focus:border-[#022c22] transition-all"
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-
-                                    <div>
-                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Business Name (Display Name)</label>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Malhotra Properties"
-                                            value={businessName}
-                                            onChange={(e) => setBusinessName(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-medium focus:outline-none focus:border-[#022c22] transition-all"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 pt-4">
-                                    <button
-                                        onClick={() => setStep(1)}
-                                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-xs font-bold transition-all"
-                                    >
-                                        Back
-                                    </button>
-                                    <button
-                                        onClick={() => setStep(3)}
-                                        className="flex-1 bg-[#022c22] hover:bg-[#15345a] text-white py-3 rounded-xl text-xs font-bold transition-all shadow-sm"
-                                    >
-                                        Continue
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* STEP 3: First Property Listing Draft */}
-                        {step === 3 && (
-                            <div className="space-y-6">
-                                <div>
-                                    <h4 className="font-bold text-slate-800 text-[15px]">Create First Listing Draft</h4>
-                                    <p className="text-xs text-slate-500 mt-1">Get your portfolio started by initializing a property draft.</p>
-                                </div>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Listing Title</label>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Modern BHK in Rajpur Road"
-                                            value={propertyTitle}
-                                            onChange={(e) => setPropertyTitle(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-medium focus:outline-none focus:border-[#022c22] transition-all"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Monthly Rent (₹)</label>
-                                        <input
-                                            type="number"
-                                            placeholder="e.g. 15000"
-                                            value={propertyRent}
-                                            onChange={(e) => setPropertyRent(e.target.value)}
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-4 text-xs font-medium focus:outline-none focus:border-[#022c22] transition-all"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 pt-4">
-                                    <button
-                                        onClick={() => setStep(2)}
-                                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-xs font-bold transition-all"
-                                    >
-                                        Back
-                                    </button>
-                                    <button
-                                        onClick={() => setStep(4)}
-                                        className="flex-1 bg-[#022c22] hover:bg-[#15345a] text-white py-3 rounded-xl text-xs font-bold transition-all shadow-sm"
-                                    >
-                                        Continue
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* STEP 4: Submit & Finish */}
-                        {step === 4 && (
-                            <div className="space-y-6">
-                                <div className="text-center py-6">
-                                    <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-sm animate-bounce">
-                                        <Icon name="check_circle" size={32} />
-                                    </div>
-                                    <h4 className="font-extrabold text-slate-800 text-[17px] mb-2">Onboarding Completed!</h4>
-                                    <p className="text-xs text-slate-500 leading-relaxed max-w-[340px] mx-auto">
-                                        Your profile will be set to verified immediately. You can now access all landlord tools and complete your listings details.
-                                    </p>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => setStep(3)}
-                                        disabled={loading}
-                                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-xs font-bold transition-all"
-                                    >
-                                        Back
-                                    </button>
-                                    <button
-                                        onClick={handleSubmitOwner}
-                                        disabled={loading}
-                                        className="flex-1 bg-[#022c22] hover:bg-[#15345a] text-white py-3 rounded-xl text-xs font-bold transition-all shadow-sm"
-                                    >
-                                        {loading ? "Submitting..." : "Submit & Launch Hosting"}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+            {step === 2 && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-2">
+                    Select Property Types
+                  </label>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {[
+                      { id: "APARTMENT", label: "Flat / Apartment", icon: "apartment" },
+                      { id: "VILLA", label: "Independent House", icon: "home" },
+                      { id: "STUDIO", label: "1 / 2 Room Set", icon: "meeting_room" },
+                      { id: "SHARED", label: "PG / Co-Living", icon: "groups" },
+                    ].map((type) => {
+                      const active = propertyTypes.includes(type.id);
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          onClick={() => handlePropertyTypeToggle(type.id)}
+                          className={`p-3 border rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                            active
+                              ? "border-[#FF385C] bg-[#FFF0F3] text-[#FF385C]"
+                              : "border-[#EBEBEB] bg-[#F7F7F7] text-[#717171] hover:text-[#222222]"
+                          }`}
+                        >
+                          <Icon name={type.icon} size={16} />
+                          <span>{type.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    disabled={loading}
+                    className="btn-cta-secondary flex-1 py-2.5 text-xs"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmitRenter}
+                    disabled={loading}
+                    className="btn-cta-primary flex-1 py-2.5 text-xs disabled:opacity-50"
+                  >
+                    {loading ? "Saving..." : "Finish Setup"}
+                  </button>
+                </div>
+              </div>
             )}
-        </>
-    );
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================= */}
+      {/* OWNER ONBOARDING MODAL — COMPACT & ZERO DESKTOP SCROLL            */}
+      {/* ================================================================= */}
+      {isOwnerFlow && (
+        <div className="bg-white rounded-2xl w-full max-w-xl border border-[#EBEBEB] shadow-2xl overflow-hidden text-[#222222]">
+          {/* Header */}
+          <div className="hero-mesh-bg px-6 py-4 border-b border-[#EBEBEB] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#222222] text-white flex items-center justify-center">
+                <Icon name="real_estate_agent" size={20} />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF385C]">
+                  Step {step} of 3 · Host Setup
+                </span>
+                <h3 className="text-base font-extrabold text-[#222222]">
+                  Activate Homeowner Studio
+                </h3>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-8 h-8 rounded-full bg-white border border-[#EBEBEB] text-[#717171] hover:text-[#222222] flex items-center justify-center transition-colors"
+            >
+              <Icon name="close" size={16} />
+            </button>
+          </div>
+
+          <div className="p-6">
+            {step === 1 && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                      Direct Contact / WhatsApp
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="+91 98765 43210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl py-2.5 px-3.5 text-xs font-medium text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                      Primary City
+                    </label>
+                    <select
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl py-2.5 px-3.5 text-xs font-bold text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222]"
+                    >
+                      {["Dehradun", "Rishikesh", "Nainital", "Mussoorie", "Haridwar", "Haldwani"].map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                    Host Category
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: "PRIVATE_OWNER", label: "Direct Owner" },
+                      { id: "BROKER", label: "Property Manager" },
+                      { id: "AGENCY", label: "Homestay / PG" },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setOwnerType(t.id)}
+                        className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all ${
+                          ownerType === t.id
+                            ? "border-[#FF385C] bg-[#FFF0F3] text-[#FF385C]"
+                            : "border-[#EBEBEB] bg-[#F7F7F7] text-[#717171] hover:text-[#222222]"
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                    Display Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Rawat Residency / Direct Owner"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl py-2.5 px-3.5 text-xs font-medium text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222]"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="btn-cta-primary px-6 py-2.5 text-xs"
+                  >
+                    <span>Continue</span>
+                    <Icon name="arrow_forward" size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-bold text-[#222222] text-sm">Initialize First Property Draft (Optional)</h4>
+                  <p className="text-xs text-[#717171] mt-0.5">
+                    Enter a title and monthly rent to create a starter draft, or skip to go straight to your dashboard.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                      Listing Title
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Sunny 2BHK on Rajpur Road"
+                      value={propertyTitle}
+                      onChange={(e) => setPropertyTitle(e.target.value)}
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl py-2.5 px-3.5 text-xs font-medium text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-[#717171] uppercase tracking-wider block mb-1.5">
+                      Monthly Rent (₹)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="e.g. 16000"
+                      value={propertyRent}
+                      onChange={(e) => setPropertyRent(e.target.value)}
+                      className="w-full bg-[#F7F7F7] border border-[#EBEBEB] rounded-xl py-2.5 px-3.5 text-xs font-bold text-[#222222] focus:outline-none focus:bg-white focus:border-[#222222]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="btn-cta-secondary flex-1 py-2.5 text-xs"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(3)}
+                    className="btn-cta-primary flex-1 py-2.5 text-xs"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-4">
+                <div className="text-center py-3">
+                  <div className="w-12 h-12 bg-[#E8F5E9] text-[#008A05] rounded-2xl flex items-center justify-center mx-auto mb-3 border border-[#C8E6C9]">
+                    <Icon name="verified" size={26} fill />
+                  </div>
+                  <h4 className="font-extrabold text-[#222222] text-base">Ready to Launch Host Studio!</h4>
+                  <p className="text-xs text-[#717171] leading-relaxed max-w-sm mx-auto mt-1">
+                    Your Direct Owner profile is ready. Manage properties, view tenant leads, and generate 11-month Uttarakhand rental agreements.
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    disabled={loading}
+                    className="btn-cta-secondary flex-1 py-2.5 text-xs"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmitOwner}
+                    disabled={loading}
+                    className="btn-cta-primary flex-1 py-2.5 text-xs disabled:opacity-50"
+                  >
+                    {loading ? "Activating..." : "Launch Host Workspace"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
+export default OnboardingFlows;

@@ -7,8 +7,10 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { QueryProvider } from "@/lib/context/QueryProvider";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://gharfoundation.vercel.app";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://gharfoundation.com"),
+  metadataBase: new URL(APP_URL),
   title: {
     default: "Ghar Foundation | Zero Brokerage Rental Homes & Room Sets in Uttarakhand",
     template: "%s | Ghar Foundation",
@@ -156,7 +158,7 @@ export default function RootLayout({
       </head>
       <body className="flex flex-col min-h-screen bg-white text-textPrimary" suppressHydrationWarning>
         <ClerkProvider
-          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_cmVuZXdlZC1zaGVlcC0zNi5jbGVyay5hY2NvdW50cy5kZXYk"}
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
           proxyUrl={process.env.NEXT_PUBLIC_CLERK_PROXY_URL || undefined}
         >
           <QueryProvider>

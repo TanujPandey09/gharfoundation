@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { CreateTourSchema } from "@/lib/validations/tour";
+import { dispatchSystemNotification } from "@/lib/services/notifications";
 
 /**
  * GET /api/tours
@@ -76,6 +77,13 @@ export async function POST(request: NextRequest) {
           },
         },
       },
+    });
+
+    await dispatchSystemNotification({
+      userId: property.ownerId,
+      title: "New Property Visit Request",
+      body: `A renter requested a tour for "${property.title}" on ${new Date(validated.date).toLocaleDateString("en-IN")} at ${validated.time}.`,
+      type: "INFO",
     });
 
     return NextResponse.json(tour, { status: 201 });

@@ -68,21 +68,23 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="bg-white text-[#222222] min-h-screen font-sans py-14 md:py-20">
-      <div className="max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10">
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-14 md:mb-18">
-          <span className="text-[#FF385C] text-xs font-bold uppercase tracking-wider bg-[#FFF0F2] px-3.5 py-1.5 rounded-full">
+    <div className="bg-white text-[#222222] min-h-screen font-sans">
+      <div className="hero-mesh-bg border-b border-[#EBEBEB] pt-5 pb-7 sm:pt-8 sm:pb-10">
+        <div className="max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10 text-center">
+          <span className="text-[#FF385C] text-xs font-bold uppercase tracking-wider bg-white/90 border border-[#FFD1D8] px-3.5 py-1 rounded-full inline-block">
             Simple &amp; Honest Pricing
           </span>
-          <h1 className="mt-4 font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight text-[#222222]">
+          <h1 className="mt-3 font-display font-extrabold text-2xl sm:text-4xl tracking-tight text-[#222222]">
             Listing is always free,{" "}
             <span className="text-[#FF385C]">pay only when you need services</span>
           </h1>
-          <p className="mt-4 text-[#717171] text-sm sm:text-base leading-relaxed">
+          <p className="mt-2.5 text-[#717171] text-xs sm:text-base max-w-2xl mx-auto leading-relaxed">
             Searching and contacting owners is <strong className="text-[#008A05] font-bold">100% free</strong> for renters. Property owners list freely without monthly subscription barriers.
           </p>
         </div>
+      </div>
+
+      <div className="max-w-[1200px] mx-auto px-4 md:px-8 lg:px-10 py-8 sm:py-12">
 
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
@@ -140,10 +142,10 @@ export default function PricingPage() {
 
               <Link
                 href={tier.href}
-                className={`w-full py-3 rounded-xl font-bold text-xs sm:text-sm text-center transition-transform active:scale-[0.98] ${
+                className={`w-full py-3 text-xs sm:text-sm text-center ${
                   tier.popular
-                    ? "bg-[#FF385C] hover:bg-[#E00B41] text-white shadow-sm"
-                    : "bg-[#F7F7F7] hover:bg-[#EBEBEB] text-[#222222] border border-[#EBEBEB]"
+                    ? "btn-cta-primary"
+                    : "btn-cta-secondary"
                 }`}
               >
                 {tier.cta}
