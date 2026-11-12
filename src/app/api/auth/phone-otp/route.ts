@@ -7,6 +7,7 @@ import {
   createSignedSession,
 } from "@/lib/server-auth";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { sendOtpSms } from "@/lib/services/sms";
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,14 +70,13 @@ export async function POST(req: NextRequest) {
       // Create stateless HMAC-signed challenge token
       const { token, expiresAt } = await createOtpChallenge(phone, generatedCode);
 
-      // Secure server logging (NEVER exposed to browser / client JSON)
-      if (process.env.NODE_ENV !== "production") {
-        console.log(`[SECURE-AUTH] OTP generated for ${phone}: ${generatedCode}`);
-      }
+      // Dispatch real SMS to user's mobile device (Fast2SMS / Twilio / Dev console)
+      const smsResult = await sendOtpSms(phone, generatedCode);
 
       const response = NextResponse.json({
         success: true,
         phone,
+        provider: smsResult.provider,
         message: `6-digit verification code sent to ${phone}`,
       });
 

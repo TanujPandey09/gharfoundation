@@ -170,3 +170,4 @@ export async function compressIdImage(
     reader.readAsDataURL(file);
   });
 }
+
