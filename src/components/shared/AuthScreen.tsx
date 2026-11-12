@@ -173,18 +173,47 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
     setStep("otp");
   };
 
-  // OAuth triggers using Clerk redirect
+  // OAuth triggers using Clerk redirect (supports both Sign Up and Sign In)
   const handleOAuth = async (provider: "oauth_google" | "oauth_apple" | "oauth_microsoft") => {
-    if (!isSignInLoaded || !signIn) return;
     setError("");
+    const providerName =
+      provider === "oauth_google"
+        ? "Google"
+        : provider === "oauth_apple"
+        ? "Apple"
+        : "Microsoft";
+
     try {
-      await signIn.authenticateWithRedirect({
-        strategy: provider,
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/dashboard",
-      });
+      if (mode === "signup") {
+        if (!isSignUpLoaded || !signUp) return;
+        await signUp.authenticateWithRedirect({
+          strategy: provider,
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete: "/dashboard",
+        });
+      } else {
+        if (!isSignInLoaded || !signIn) return;
+        await signIn.authenticateWithRedirect({
+          strategy: provider,
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete: "/dashboard",
+        });
+      }
     } catch (err: any) {
-      setError(err.errors?.[0]?.message || "OAuth login failed.");
+      console.error(`OAuth error with ${providerName}:`, err);
+      const rawMsg = err.errors?.[0]?.message || err.message || "";
+      if (
+        rawMsg.toLowerCase().includes("not enabled") ||
+        rawMsg.toLowerCase().includes("strategy") ||
+        rawMsg.toLowerCase().includes("invalid") ||
+        rawMsg.toLowerCase().includes("disabled")
+      ) {
+        setError(
+          `${providerName} sign-in is not enabled in your Clerk Dashboard. Please continue with Google or use Mobile OTP.`
+        );
+      } else {
+        setError(rawMsg || `Failed to sign in with ${providerName}.`);
+      }
     }
   };
 
@@ -933,14 +962,15 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
                   </div>
                 )}
 
-                {/* Horizontal Social Buttons */}
-                <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+                {/* Social Login Options */}
+                <div className="space-y-2.5">
+                  {/* Primary Google Login Button */}
                   <button
                     type="button"
                     onClick={() => handleOAuth("oauth_google")}
                     disabled={isLoading}
                     title="Continue with Google"
-                    className="flex items-center justify-center gap-2 bg-white hover:bg-[#F7F7F7] text-[#222222] h-11 sm:h-12 rounded-xl border border-[#EBEBEB] transition-all active:scale-[0.98]"
+                    className="w-full flex items-center justify-center gap-3 bg-white hover:bg-[#F7F7F7] text-[#222222] h-11 sm:h-12 rounded-xl border border-[#DDDDDD] hover:border-[#222222] font-bold text-xs sm:text-sm shadow-sm transition-all active:scale-[0.98]"
                   >
                     <svg viewBox="0 0 24 24" width="20" height="20">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -948,37 +978,40 @@ export default function AuthScreen({ initialMode = "login" }: { initialMode?: "l
                       <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
                       <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                     </svg>
-                    <span className="text-xs font-bold hidden sm:inline">Google</span>
+                    <span>Continue with Google</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOAuth("oauth_apple")}
-                    disabled={isLoading}
-                    title="Continue with Apple"
-                    className="flex items-center justify-center gap-2 bg-[#222222] hover:bg-black text-white h-11 sm:h-12 rounded-xl transition-all active:scale-[0.98]"
-                  >
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.57 2.95-1.39z" />
-                    </svg>
-                    <span className="text-xs font-bold hidden sm:inline">Apple</span>
-                  </button>
+                  {/* Secondary Apple & Microsoft Buttons */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => handleOAuth("oauth_apple")}
+                      disabled={isLoading}
+                      title="Continue with Apple"
+                      className="flex items-center justify-center gap-2 bg-[#222222] hover:bg-black text-white h-10 rounded-xl transition-all active:scale-[0.98] text-xs font-bold"
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.57 2.95-1.39z" />
+                      </svg>
+                      <span>Apple ID</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleOAuth("oauth_microsoft")}
-                    disabled={isLoading}
-                    title="Continue with Microsoft"
-                    className="flex items-center justify-center gap-2 bg-white hover:bg-[#F7F7F7] text-[#222222] h-11 sm:h-12 rounded-xl border border-[#EBEBEB] transition-all active:scale-[0.98]"
-                  >
-                    <svg viewBox="0 0 23 23" width="18" height="18">
-                      <path fill="#f35325" d="M1 1h10v10H1z" />
-                      <path fill="#81bc06" d="M12 1h10v10H12z" />
-                      <path fill="#05a6f0" d="M1 12h10v10H1z" />
-                      <path fill="#ffba08" d="M12 12h10v10H12z" />
-                    </svg>
-                    <span className="text-xs font-bold hidden sm:inline">Microsoft</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOAuth("oauth_microsoft")}
+                      disabled={isLoading}
+                      title="Continue with Microsoft"
+                      className="flex items-center justify-center gap-2 bg-white hover:bg-[#F7F7F7] text-[#222222] h-10 rounded-xl border border-[#EBEBEB] transition-all active:scale-[0.98] text-xs font-bold"
+                    >
+                      <svg viewBox="0 0 23 23" width="15" height="15">
+                        <path fill="#f35325" d="M1 1h10v10H1z" />
+                        <path fill="#81bc06" d="M12 1h10v10H12z" />
+                        <path fill="#05a6f0" d="M1 12h10v10H1z" />
+                        <path fill="#ffba08" d="M12 12h10v10H12z" />
+                      </svg>
+                      <span>Microsoft</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Divider */}
