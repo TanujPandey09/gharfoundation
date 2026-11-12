@@ -320,23 +320,20 @@ export function PaymentsTab() {
                   </ul>
                 </div>
 
-                <button
-                  disabled={isCurrent || paymentMutation.isPending}
-                  onClick={() =>
-                    paymentMutation.mutate({
-                      amount: plan.price,
-                      purpose: `${plan.name} Plan Subscription`,
-                      planName: plan.id,
-                    })
-                  }
-                  className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all ${
-                    isCurrent
-                      ? "bg-[#F7F7F7] text-[#717171] border border-[#EBEBEB] cursor-default"
-                      : "bg-[#222222] hover:bg-black text-white"
-                  }`}
-                >
-                  {isCurrent ? "Current Active Plan" : plan.price === 0 ? "Switch to Free" : `Activate ${plan.name}`}
-                </button>
+                {plan.price === 0 ? (
+                  <button
+                    disabled
+                    className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#F7F7F7] text-[#008A05] border border-forest-200 cursor-default flex items-center justify-center gap-1.5"
+                  >
+                    <Icon name="check_circle" size={15} fill />
+                    <span>Active Plan (100% Free)</span>
+                  </button>
+                ) : (
+                  <div className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#E8F5E9] text-[#008A05] border border-[#C8E6C9] text-center flex items-center justify-center gap-1.5">
+                    <Icon name="verified" size={15} />
+                    <span>Included Free in Early Launch</span>
+                  </div>
+                )}
               </div>
             );
           })}

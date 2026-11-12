@@ -113,7 +113,17 @@ export async function sendOtpSms(phone: string, otpCode: string): Promise<SendSm
     }
   }
 
-  // 3. CONSOLE FALLBACK (Safe for Local Dev & Testing)
+  // 3. PRODUCTION CHECK: If no SMS provider is configured in production, fail honestly
+  if (process.env.NODE_ENV === "production") {
+    console.error("[SMS Gateway Error] No active SMS gateway (FAST2SMS_API_KEY or TWILIO) configured in production.");
+    return {
+      success: false,
+      provider: "CONSOLE_DEV",
+      error: "SMS verification is temporarily unavailable. Please sign in with Email.",
+    };
+  }
+
+  // 4. LOCAL DEVELOPMENT CONSOLE FALLBACK (Safe for Dev & Testing Only)
   console.log(`\n======================================================`);
   console.log(`[DEV OTP SMS] Mobile: +91 ${indian10Digit}`);
   console.log(`[DEV OTP SMS] OTP Code: ${otpCode}`);
@@ -125,3 +135,4 @@ export async function sendOtpSms(phone: string, otpCode: string): Promise<SendSm
     provider: "CONSOLE_DEV",
   };
 }
+

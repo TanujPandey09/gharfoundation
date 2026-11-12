@@ -42,11 +42,17 @@ export async function POST(request: NextRequest) {
       backUrl = await uploadImage(dataUrl);
     }
 
-    // Store document verification record (simulated; extend Prisma if a Document model exists)
+    // Persist real document URLs in the database for admin inspection
+    // Documents remain unverified until approved in the admin queue
     await prisma.user.update({
       where: { id: userId },
       data: {
-        documentsVerified: true,
+        kycFrontUrl: frontUrl,
+        kycBackUrl: backUrl,
+        kycDocumentType: documentType,
+        kycStatus: "UNDER_REVIEW",
+        kycSubmittedAt: new Date(),
+        documentsVerified: false,
       },
     });
 
@@ -55,7 +61,8 @@ export async function POST(request: NextRequest) {
       documentType,
       frontUrl,
       backUrl,
-      message: "Documents uploaded and verified successfully",
+      status: "UNDER_REVIEW",
+      message: "Documents uploaded securely and queued for verification review",
     });
   } catch (error) {
     if (error instanceof NextResponse) return error;

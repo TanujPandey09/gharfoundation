@@ -5,10 +5,20 @@
  * using the standard global Web Crypto API.
  */
 
-const AUTH_SECRET =
-  process.env.AUTH_SECRET ||
-  process.env.CLERK_SECRET_KEY ||
-  "ghar_foundation_prod_hmac_secret_2026_secured";
+function resolveAuthSecret(): string {
+  const secret = process.env.AUTH_SECRET || process.env.CLERK_SECRET_KEY;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "CRITICAL SECURITY CONFIGURATION ERROR: AUTH_SECRET or CLERK_SECRET_KEY must be configured in production environment variables."
+      );
+    }
+    return "ghar_foundation_dev_hmac_secret_fallback_only";
+  }
+  return secret;
+}
+
+const AUTH_SECRET = resolveAuthSecret();
 
 /**
  * Normalizes an Indian or international phone number to E.164 standard.

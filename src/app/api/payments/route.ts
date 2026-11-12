@@ -49,7 +49,8 @@ export async function GET() {
 
 /**
  * POST /api/payments
- * Records a subscription plan change or rent/listing payment in PostgreSQL.
+ * Records a verified rent ledger entry (for HRA tax receipts) in PostgreSQL.
+ * Paid platform subscriptions are disabled during early launch (all features are free).
  * Body: { amount: number, purpose: string, planName?: string }
  */
 export async function POST(request: NextRequest) {
@@ -59,64 +60,53 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const amount = Number(body.amount ?? 0);
-    const purpose = String(body.purpose || "Subscription Upgrade");
+    const purpose = String(body.purpose || "Monthly Rent Payment");
     const planName = body.planName as string | undefined;
 
-    if (isNaN(amount) || amount < 0) {
-      return NextResponse.json({ error: "Invalid payment amount" }, { status: 400 });
+    // Disallow fake paid subscription upgrades
+    if (planName && planName !== "free" && amount > 0) {
+      return NextResponse.json(
+        {
+          error: "Online payment gateway is not live yet. All premium hosting features and listings are currently 100% FREE for early launch users.",
+        },
+        { status: 400 }
+      );
     }
 
-    const transactionId = `TXN-GHAR-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    if (isNaN(amount) || amount <= 0) {
+      return NextResponse.json({ error: "Please enter a valid payment amount" }, { status: 400 });
+    }
+
+    // Generate compliant rent ledger receipt ID
+    const receiptId = `REC-RENT-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const payment = await prisma.payment.create({
       data: {
         userId,
         amount,
-        status: "SUCCESS",
-        transactionId,
+        status: "RECORDED",
+        transactionId: receiptId,
         purpose,
       },
     });
 
-    let subscription = null;
-    if (planName) {
-      // Mark previous active subscriptions as CANCELLED
-      await prisma.subscription.updateMany({
-        where: { userId, status: "ACTIVE" },
-        data: { status: "CANCELLED" },
-      });
-
-      const endDate = new Date();
-      endDate.setMonth(endDate.getMonth() + 1);
-
-      subscription = await prisma.subscription.create({
-        data: {
-          userId,
-          planName,
-          status: "ACTIVE",
-          startDate: new Date(),
-          endDate,
-          pricePaid: amount,
-        },
-      });
-    }
-
     await dispatchSystemNotification({
       userId,
-      title: "Payment Confirmed",
-      body: `₹${amount.toLocaleString("en-IN")} processed for ${purpose} (${transactionId}).`,
+      title: "Rent Receipt Recorded",
+      body: `₹${amount.toLocaleString("en-IN")} recorded under Rent Ledger (${receiptId}) for ${purpose}.`,
       type: "TRANSACTION",
     });
 
     return NextResponse.json({
       success: true,
       payment,
-      subscription,
+      message: "Rent payment recorded in ledger successfully.",
     });
   } catch (error) {
     if (error instanceof NextResponse) return error;
     console.error("POST /api/payments error:", error);
-    return NextResponse.json({ error: "Failed to process payment" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to record payment entry" }, { status: 500 });
   }
 }
+
 

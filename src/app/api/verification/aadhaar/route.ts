@@ -46,8 +46,12 @@ export async function POST(request: NextRequest) {
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        documentsVerified: true,
+        documentsVerified: false,
+        aadhaarVerified: false,
+        kycStatus: "UNDER_REVIEW",
+        kycSubmittedAt: new Date(),
         aadhaarMasked: secureMasked,
+        kycDocumentType: documentType,
         name: fullName || undefined,
         onboardingStatus: "COMPLETED",
       },
@@ -60,12 +64,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       status: "UNDER_REVIEW",
-      verified: user.aadhaarVerified,
-      documentsVerified: true,
+      verified: false,
+      documentsVerified: false,
       maskedAadhaar: user.aadhaarMasked,
       name: user.name,
       documentType,
-      message: "Identity documents submitted for verification review",
+      message: "Identity documents submitted and queued for verification review",
     });
   } catch (error) {
     if (error instanceof NextResponse) return error;
@@ -95,6 +99,10 @@ export async function GET() {
         image: true,
         emailVerified: true,
         documentsVerified: true,
+        kycStatus: true,
+        kycDocumentType: true,
+        kycSubmittedAt: true,
+        kycRejectionReason: true,
         onboardingStatus: true,
       },
     });
@@ -106,6 +114,10 @@ export async function GET() {
     return NextResponse.json({
       aadhaarVerified: user.aadhaarVerified,
       maskedAadhaar: user.aadhaarMasked,
+      kycStatus: user.kycStatus,
+      kycDocumentType: user.kycDocumentType,
+      kycSubmittedAt: user.kycSubmittedAt,
+      kycRejectionReason: user.kycRejectionReason,
       name: user.name,
       email: user.email,
       emailVerified: user.emailVerified,

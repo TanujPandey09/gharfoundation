@@ -73,6 +73,13 @@ export async function POST(req: NextRequest) {
       // Dispatch real SMS to user's mobile device (Fast2SMS / Twilio / Dev console)
       const smsResult = await sendOtpSms(phone, generatedCode);
 
+      if (!smsResult.success) {
+        return NextResponse.json(
+          { error: smsResult.error || "SMS delivery service is unavailable. Please sign in with Email." },
+          { status: 503 }
+        );
+      }
+
       const response = NextResponse.json({
         success: true,
         phone,
