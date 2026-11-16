@@ -92,6 +92,7 @@ export interface Property {
   owner?: User;
   images: Image[];
   amenities: Amenity[];
+  reviews?: Review[];
   isVerified: boolean;
   isFeatured: boolean;
   viewsCount: number;

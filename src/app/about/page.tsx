@@ -112,7 +112,7 @@ export default function AboutPage() {
             Ready to find your next home?
           </h3>
           <p className="mt-2 text-[#717171] text-sm max-w-md mx-auto">
-            Browse through hundreds of verified rooms, flats, PGs, and commercial spaces.
+            Browse through direct-owner verified rooms, flats, and cottages across Uttarakhand.
           </p>
           <div className="mt-5 flex flex-wrap gap-3 justify-center">
             <Link 

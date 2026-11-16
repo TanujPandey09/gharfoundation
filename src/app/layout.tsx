@@ -6,6 +6,7 @@ import { ToastProvider } from "@/lib/context/ToastContext";
 import { ClerkProvider } from "@clerk/nextjs";
 import { QueryProvider } from "@/lib/context/QueryProvider";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
+import CookieConsent from "@/components/shared/CookieConsent";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://gharfoundation.vercel.app";
 
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     "Student PG Roorkee",
     "Family Rental Homes Uttarakhand"
   ],
-  authors: [{ name: "Ghar Foundation Team", url: "https://gharfoundation.com" }],
+  authors: [{ name: "Ghar Foundation Team", url: APP_URL }],
   creator: "Ghar Foundation",
   publisher: "Ghar Foundation",
   alternates: {
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://gharfoundation.com",
+    url: APP_URL,
     title: "Ghar Foundation | Zero Brokerage Rentals in Uttarakhand",
     description: "Connect directly with verified owners for room sets, flats, cottages, and commercial spaces across Uttarakhand's 13 districts with zero brokerage fees.",
     siteName: "Ghar Foundation",
@@ -103,14 +104,17 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@graph": [
                 {
-                  "@type": "RealEstateAgent",
-                  "@id": "https://gharfoundation.com/#organization",
+                  "@type": ["Organization", "RealEstateListingService"],
+                  "@id": `${APP_URL}/#organization`,
                   "name": "Ghar Foundation",
-                  "url": "https://gharfoundation.com",
-                  "logo": "https://gharfoundation.com/icons/icon-192x192.png",
+                  "url": APP_URL,
+                  "logo": `${APP_URL}/icons/icon-192x192.png`,
                   "description": "Uttarakhand's direct rental property platform connecting renters with verified property owners across all 13 districts with zero brokerage fees.",
                   "address": {
                     "@type": "PostalAddress",
+                    "streetAddress": "Plot No. 12, IT Park, Sahastradhara Road",
+                    "addressLocality": "Dehradun",
+                    "postalCode": "248013",
                     "addressRegion": "Uttarakhand",
                     "addressCountry": "IN"
                   },
@@ -134,19 +138,19 @@ export default function RootLayout({
                     "Chamoli",
                     "Pithoragarh"
                   ],
-                  "priceRange": "₹3,000 - ₹80,000"
+                  "priceRange": "₹4,500 - ₹40,000"
                 },
                 {
                   "@type": "WebSite",
-                  "@id": "https://gharfoundation.com/#website",
-                  "url": "https://gharfoundation.com",
+                  "@id": `${APP_URL}/#website`,
+                  "url": APP_URL,
                   "name": "Ghar Foundation",
-                  "publisher": { "@id": "https://gharfoundation.com/#organization" },
+                  "publisher": { "@id": `${APP_URL}/#organization` },
                   "potentialAction": {
                     "@type": "SearchAction",
                     "target": {
                       "@type": "EntryPoint",
-                      "urlTemplate": "https://gharfoundation.com/search?q={search_term_string}"
+                      "urlTemplate": `${APP_URL}/search?q={search_term_string}`
                     },
                     "query-input": "required name=search_term_string"
                   }
@@ -168,6 +172,7 @@ export default function RootLayout({
                   <LayoutWrapper>
                     {children}
                   </LayoutWrapper>
+                  <CookieConsent />
                 </ToastProvider>
               </ThemeProvider>
             </AuthProvider>

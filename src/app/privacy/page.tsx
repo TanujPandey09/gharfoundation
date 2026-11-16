@@ -70,6 +70,26 @@ export default function PrivacyPolicyPage() {
             ))}
           </div>
 
+          {/* Grievance Redressal Mechanism (IT Rules 2021 & DPDP Act 2023) */}
+          <div className="mt-8 p-6 rounded-2xl bg-[#F7F7F7] border border-[#EBEBEB] space-y-3">
+            <h3 className="text-sm font-bold text-[#222222] uppercase tracking-wider flex items-center gap-2">
+              <Icon name="gavel" size={16} className="text-[#FF385C]" />
+              <span>Grievance Officer &amp; Redressal Mechanism</span>
+            </h3>
+            <p className="text-xs text-[#717171] leading-relaxed">
+              In accordance with the Information Technology Act, 2000 and the Information Technology (Intermediary Guidelines and Digital Media Ethics Code) Rules, 2021, and the Digital Personal Data Protection Act, 2023, the details of the Grievance Officer are published below:
+            </p>
+            <div className="text-xs text-[#222222] space-y-1 bg-white p-4 rounded-xl border border-[#EBEBEB]">
+              <p><strong>Officer:</strong> Tanuj Pandey</p>
+              <p><strong>Designation:</strong> Grievance &amp; Data Protection Officer</p>
+              <p><strong>Email:</strong> grievance@gharfoundation.com / support@gharfoundation.com</p>
+              <p><strong>Office Address:</strong> Plot No. 12, IT Park, Sahastradhara Road, Dehradun, Uttarakhand 248013</p>
+              <p className="text-[#008A05] pt-1 font-semibold">
+                Turnaround: Acknowledgement within 24 hours · Final grievance resolution within 15 days.
+              </p>
+            </div>
+          </div>
+
           <div className="border-t border-[#EBEBEB] pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
             <span className="text-[#717171]">Questions or data privacy requests?</span>
             <Link

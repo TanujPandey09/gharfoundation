@@ -41,26 +41,31 @@ export default function SearchContent() {
   const initialQuery = searchParams.get("q") || "";
   const initialCity = searchParams.get("city") || "";
   const initialType = searchParams.get("type") || "";
+  const initialMaxRent = searchParams.get("maxRent") ? Number(searchParams.get("maxRent")) : 60000;
+  const initialGender = searchParams.get("gender") || "";
+  const initialBedrooms = searchParams.get("bedrooms")
+    ? searchParams.get("bedrooms")!.split(",").map(Number).filter((n) => !isNaN(n))
+    : [];
 
   // Core Filter States
   const [searchVal, setSearchVal] = useState(initialQuery);
   const [cityFilter, setCityFilter] = useState(initialCity);
   const [typeFilter, setTypeFilter] = useState(initialType);
-  const [maxRent, setMaxRent] = useState<number>(60000);
+  const [maxRent, setMaxRent] = useState<number>(initialMaxRent);
 
   // Quick Toggle Filter States
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [zeroBrokerageOnly, setZeroBrokerageOnly] = useState(false);
   const [petFriendlyOnly, setPetFriendlyOnly] = useState(false);
-  const [bachelorFriendlyOnly, setBachelorFriendlyOnly] = useState(false);
+  const [bachelorFriendlyOnly, setBachelorFriendlyOnly] = useState(initialGender === "BACHELOR");
 
   // Sidebar Filter States
-  const [selectedBhk, setSelectedBhk] = useState<number[]>([]);
+  const [selectedBhk, setSelectedBhk] = useState<number[]>(initialBedrooms);
   const [bathrooms, setBathrooms] = useState<number | null>(null);
   const [parking, setParking] = useState<boolean | null>(null);
   const [internet, setInternet] = useState<boolean | null>(null);
   const [furnishing, setFurnishing] = useState<string>("");
-  const [gender, setGender] = useState<string>("");
+  const [gender, setGender] = useState<string>(initialGender === "BACHELOR" ? "" : initialGender);
   const [sortOrder, setSortOrder] = useState<string>("relevance");
 
   // Track map selected property
@@ -138,6 +143,10 @@ export default function SearchContent() {
     if (searchVal) params.append("q", searchVal);
     if (cityFilter) params.append("city", cityFilter);
     if (typeFilter) params.append("type", typeFilter);
+    if (maxRent < 100000) params.append("maxRent", String(maxRent));
+    if (bachelorFriendlyOnly) params.append("gender", "BACHELOR");
+    else if (gender) params.append("gender", gender);
+    if (selectedBhk.length > 0) params.append("bedrooms", selectedBhk.join(","));
     router.push(`/search?${params.toString()}`);
     showToast("Search updated", "success");
   };
@@ -438,7 +447,7 @@ export default function SearchContent() {
         
         {/* Left: Map (Airbnb Split Screen) */}
         {!hideMap && (
-          <aside className="hidden lg:block w-[42%] h-full relative bg-[#F7F7F7] shrink-0 border-r border-[#EBEBEB]">
+          <aside className={`${mobileView === "map" ? "block w-full h-[65vh]" : "hidden"} lg:block lg:w-[42%] lg:h-full relative bg-[#F7F7F7] shrink-0 border-r border-[#EBEBEB]`}>
             <button
               onClick={() => setHideMap(true)}
               className="absolute top-4 left-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5 text-xs font-bold text-[#222222] hover:bg-white transition-all border border-[#EBEBEB]"
@@ -458,7 +467,7 @@ export default function SearchContent() {
         )}
 
         {/* Right: Property Listings Grid */}
-        <section className="flex-1 h-full overflow-y-auto bg-white px-4 md:px-8 py-5 flex flex-col">
+        <section className={`${mobileView === "map" ? "hidden lg:flex" : "flex"} flex-1 h-full overflow-y-auto bg-white px-4 md:px-8 py-5 flex-col`}>
           <div className="max-w-[1100px] mx-auto w-full flex-grow flex flex-col">
             
             {/* Header Result Counter & Sort */}
@@ -476,7 +485,14 @@ export default function SearchContent() {
                   )}
                 </h1>
                 <p className="text-xs text-[#717171] mt-0.5 font-medium">
-                  {filteredProperties.length} verified direct owner listings found
+                  {isLoading ? (
+                    <span className="inline-flex items-center gap-1.5 text-[#FF385C]">
+                      <Icon name="sync" size={13} className="animate-spin" />
+                      <span>Searching verified direct homes...</span>
+                    </span>
+                  ) : (
+                    `${filteredProperties.length} verified direct owner listings found`
+                  )}
                 </p>
               </div>
 
@@ -672,8 +688,20 @@ export default function SearchContent() {
                     </button>
                   </div>
                 ) : isLoading ? (
-                  <div className="flex justify-center items-center h-64">
-                    <Icon name="sync" className="animate-spin text-[#FF385C]" size={36} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-20">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="rounded-2xl bg-white border border-[#EBEBEB] overflow-hidden p-3.5 space-y-3 animate-pulse shadow-sm">
+                        <div className="h-44 bg-[#F0F0F0] rounded-xl w-full" />
+                        <div className="space-y-2">
+                          <div className="h-4 bg-[#F0F0F0] rounded w-3/4" />
+                          <div className="h-3 bg-[#F0F0F0] rounded w-1/2" />
+                        </div>
+                        <div className="pt-2 border-t border-[#EBEBEB] flex justify-between items-center">
+                          <div className="h-4 bg-[#F0F0F0] rounded w-1/3" />
+                          <div className="h-8 bg-[#F0F0F0] rounded-lg w-20" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : filteredProperties.length === 0 ? (
                   <div className="bg-[#F7F7F7] border border-[#EBEBEB] p-12 text-center rounded-3xl space-y-4 shadow-sm w-full">

@@ -15,20 +15,24 @@ export default function TermsPage() {
       desc: "Users can register as Renters (Tenants) or Owners (Landlords/Brokers). Renters must search and communicate in good faith. Owners must guarantee that listing descriptions, photos, pricing, and ownership documentation are accurate and genuine.",
     },
     {
-      title: "3. Direct dealing & zero brokerage",
-      desc: "Ghar Foundation operates as a matching directory and listing platform. We do not participate in negotiations or agreements between renters and owners. Direct owner listings have zero brokerage. Any broker listings must state brokerage terms upfront.",
+      title: "3. Direct dealing & zero brokerage guarantee",
+      desc: "Ghar Foundation operates as a direct-owner rental network. We strictly prohibit third-party broker syndicates and unauthorized middleman fees. Every listing is intended to connect renters directly with verified homeowners or caretakers with ₹0 brokerage.",
     },
     {
       title: "4. Verification and safety",
-      desc: "We make reasonable efforts to verify listings based on uploaded documents. However, we cannot guarantee absolute accuracy. Users are solely responsible for inspecting properties, verifying details in person, and avoiding advance payments prior to inspections.",
+      desc: "We make reasonable efforts to verify listings based on uploaded Aadhaar KYC and property documents. However, users are advised to inspect properties in person and verify all physical amenities before signing leases. Never pay cash advance before visiting.",
     },
     {
-      title: "5. Digital rental agreements",
-      desc: "Digital e-stamped agreement creation is provided as a utility tool. Legal validity depends on accuracy of inputs provided by owners and renters. Users are responsible for paying any government stamp duty charges.",
+      title: "5. Digital rental agreements & police verification",
+      desc: "Our automated 11-month lease drafts and Uttarakhand Police verification forms are provided as legal self-service compliance tools. Users are responsible for procuring statutory non-judicial e-Stamp papers.",
     },
     {
       title: "6. Limitation of liability",
-      desc: "Ghar Foundation, its directors, and team shall not be liable for any disputes, damage, loss of money, property damage, or rental agreement breaches between tenants and owners.",
+      desc: "Ghar Foundation operates as an intermediary platform connecting landlords and tenants. Users agree to abide by the Uttarakhand Police Act and state tenancy regulations.",
+    },
+    {
+      title: "7. Grievance Officer (IT Rules, 2021)",
+      desc: "Grievance Officer: Tanuj Pandey, Email: grievance@gharfoundation.com / support@gharfoundation.com, Address: Plot No. 12, IT Park, Sahastradhara Road, Dehradun, Uttarakhand 248013. Acknowledged within 24 hours and resolved within 15 days.",
     },
   ];
 

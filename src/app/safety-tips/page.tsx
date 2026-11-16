@@ -151,7 +151,7 @@ export default function SafetyTipsPage() {
             </p>
             <div className="mt-4">
               <Link
-                href="/contact"
+                href="/contact?subject=report"
                 className="text-[#C13515] text-xs font-bold hover:underline inline-flex items-center gap-1"
               >
                 <span>Report a suspicious listing</span>

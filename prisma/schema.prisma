@@ -356,3 +356,16 @@ model Lead {
 
   @@index([ownerId])
 }
+
+model ContactSubmission {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  status    String   @default("UNREAD") // UNREAD, RESOLVED, SPAM
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

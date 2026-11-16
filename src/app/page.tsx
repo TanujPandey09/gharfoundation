@@ -16,7 +16,7 @@ const POPULAR_LOCALITIES = [
     tag: "UPES & Colleges Hub",
     desc: "Walking distance to UPES shuttle stops, student PGs, room sets & independent flats",
     avgRent: "₹5,500 - ₹12,000",
-    listingsCount: "60+ Direct Homes",
+    listingsCount: "Campus Hub",
     image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&auto=format&fit=crop&q=80",
     query: "Prem Nagar",
   },
@@ -26,7 +26,7 @@ const POPULAR_LOCALITIES = [
     tag: "Graphic Era Hub",
     desc: "Peaceful environment, walking distance to GEU / GEHU, bachelors & faculty homes",
     avgRent: "₹6,000 - ₹14,000",
-    listingsCount: "50+ Direct Homes",
+    listingsCount: "Student & Faculty",
     image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=600&auto=format&fit=crop&q=80",
     query: "Clement Town",
   },
@@ -36,7 +36,7 @@ const POPULAR_LOCALITIES = [
     tag: "Upscale & Families",
     desc: "Scenic foothills, Pacific Mall proximity, gated 2/3 BHK floors & modern apartments",
     avgRent: "₹14,000 - ₹30,000",
-    listingsCount: "45+ Direct Homes",
+    listingsCount: "Family & Exec",
     image: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&auto=format&fit=crop&q=80",
     query: "Rajpur Road",
   },
@@ -46,7 +46,7 @@ const POPULAR_LOCALITIES = [
     tag: "DIT & IMS Hub",
     desc: "Fresh mountain air, peaceful student studios, room sets & family cottages",
     avgRent: "₹7,000 - ₹16,000",
-    listingsCount: "35+ Direct Homes",
+    listingsCount: "Foothills Stays",
     image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&auto=format&fit=crop&q=80",
     query: "DIT",
   },
@@ -56,17 +56,17 @@ const POPULAR_LOCALITIES = [
     tag: "Yoga & River Views",
     desc: "Furnished studios, serene hill cottages, fast Wi-Fi & work-from-mountains stays",
     avgRent: "₹9,000 - ₹24,000",
-    listingsCount: "40+ Direct Homes",
+    listingsCount: "River & Workation",
     image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&auto=format&fit=crop&q=80",
     query: "Tapovan",
   },
   {
     name: "Haldwani & Kathgodam",
-    city: "Nainital",
+    city: "Haldwani",
     tag: "Kumaon Gateway",
     desc: "Affordable 1, 2 & 3 BHK independent floors, market proximity & family residences",
     avgRent: "₹5,000 - ₹15,000",
-    listingsCount: "30+ Direct Homes",
+    listingsCount: "Kumaon Direct",
     image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&fit=crop&q=80",
     query: "Haldwani",
   },
@@ -514,21 +514,38 @@ export default function HomePage() {
                   State police actively fine landlords up to ₹10,000 for unverified tenants. We automatically prepare your official pre-filled Police Verification Dossier and standard 11-month rent agreement right from your dashboard.
                 </p>
 
-                {/* Visual Mock Badge */}
-                <div className="mt-4 p-3 bg-white rounded-xl border border-[#EBEBEB] flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-forest-100 text-forest-800 flex items-center justify-center font-bold text-xs shrink-0">
-                    PDF
+                {/* Visual Verification Badge & PDF Link */}
+                <div className="mt-4 p-3 bg-white rounded-xl border border-[#EBEBEB] flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-forest-100 text-forest-800 flex items-center justify-center font-bold text-xs shrink-0">
+                      PDF
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-[#222222] truncate">UK_Police_Verification_Form.pdf</p>
+                      <p className="text-[10px] text-[#008A05] font-semibold">Pre-filled Uttarakhand Police Dossier</p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-[#222222] truncate">UK_Police_Verification_Form.pdf</p>
-                    <p className="text-[10px] text-[#008A05] font-semibold">Pre-filled with tenant Aadhaar &amp; photo</p>
-                  </div>
+                  <a
+                    href="/UK_Police_Verification_Form.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-[#008A05] hover:underline font-bold shrink-0 inline-flex items-center gap-0.5"
+                  >
+                    <span>View</span>
+                    <Icon name="open_in_new" size={13} />
+                  </a>
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#EBEBEB] flex items-center justify-between text-xs font-bold text-[#008A05]">
-                <span>Zero Police Thana Hassle</span>
-                <Icon name="check_circle" size={16} fill />
+              <div className="mt-6 pt-4 border-t border-[#EBEBEB] flex items-center justify-between text-xs font-bold">
+                <Link href="/police-verification" className="text-[#008A05] hover:underline flex items-center gap-1">
+                  <span>Police Dossier Tool</span>
+                  <Icon name="arrow_forward" size={14} />
+                </Link>
+                <Link href="/agreements" className="text-[#FF385C] hover:underline flex items-center gap-1">
+                  <span>11-Month Lease</span>
+                  <Icon name="arrow_forward" size={14} />
+                </Link>
               </div>
             </div>
 

@@ -13,16 +13,17 @@ import Icon from "@/components/shared/Icon";
 
 interface PropertyDetailsContentProps {
   id: string;
+  initialProperty?: Property | null;
 }
 
-export default function PropertyDetailsContent({ id }: PropertyDetailsContentProps) {
+export default function PropertyDetailsContent({ id, initialProperty }: PropertyDetailsContentProps) {
   const router = useRouter();
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const [property, setProperty] = useState<Property | null>(null);
-  const [owner, setOwner] = useState<any>(null);
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [property, setProperty] = useState<Property | null>(initialProperty || null);
+  const [owner, setOwner] = useState<any>(initialProperty?.owner || null);
+  const [reviews, setReviews] = useState<Review[]>(initialProperty?.reviews || []);
 
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [newComment, setNewComment] = useState("");
@@ -86,7 +87,8 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
       const res = await fetch(`/api/properties/${id}`);
       if (!res.ok) throw new Error("Failed to fetch property");
       return res.json();
-    }
+    },
+    initialData: initialProperty ? { data: initialProperty } : undefined,
   });
 
   useEffect(() => {
@@ -102,7 +104,7 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
     }
   }, [propertyData]);
 
-  if (isLoading) {
+  if (isLoading && !property) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4 bg-white">
         <div className="animate-pulse space-y-4">
@@ -601,85 +603,122 @@ export default function PropertyDetailsContent({ id }: PropertyDetailsContentPro
         </div>
 
         {/* =================================================================== */}
-        {/* AIRBNB 5-PHOTO MOSAIC GRID                                          */}
+        {/* RESPONSIVE PHOTO GALLERY (ADAPTS CLEANLY TO PHOTO COUNT)           */}
         {/* =================================================================== */}
-        <div className="grid grid-cols-4 grid-rows-2 gap-2.5 h-[420px] rounded-3xl overflow-hidden relative">
-          {images.length > 0 ? (
-            <>
-              {/* Primary Large Image */}
-              <div
-                onClick={() => setActiveImageIdx(0)}
-                className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
-              >
-                <img
-                  src={images[0].url}
-                  alt={property.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-
-              {/* Thumbnail 1 */}
-              <div
-                onClick={() => setActiveImageIdx(1 % images.length)}
-                className="relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
-              >
-                <img
-                  src={images[1 % images.length].url}
-                  alt="Thumb 1"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-
-              {/* Thumbnail 2 */}
-              <div
-                onClick={() => setActiveImageIdx(2 % images.length)}
-                className="relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
-              >
-                <img
-                  src={images[2 % images.length].url}
-                  alt="Thumb 2"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-
-              {/* Thumbnail 3 */}
-              <div
-                onClick={() => setActiveImageIdx(3 % images.length)}
-                className="relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
-              >
-                <img
-                  src={images[3 % images.length].url}
-                  alt="Thumb 3"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-
-              {/* Thumbnail 4 */}
-              <div
-                onClick={() => setActiveImageIdx(4 % images.length)}
-                className="relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
-              >
-                <img
-                  src={images[4 % images.length].url}
-                  alt="Thumb 4"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-            </>
-          ) : (
-            <div className="col-span-4 row-span-2 bg-[#F7F7F7] flex items-center justify-center text-[#717171]">
-              Photos arriving soon
+        {images.length === 0 ? (
+          <div className="h-[360px] sm:h-[420px] rounded-3xl bg-[#F7F7F7] flex items-center justify-center text-[#717171] border border-[#EBEBEB]">
+            <div className="text-center space-y-1">
+              <Icon name="photo_camera" size={32} className="mx-auto text-[#B0B0B0]" />
+              <p className="text-xs font-semibold">Photos arriving soon from homeowner</p>
             </div>
-          )}
-
-          <button
-            onClick={() => showToast(`Viewing all ${images.length} photos`, "info")}
-            className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-bold text-[#222222] shadow-md border border-[#EBEBEB] flex items-center gap-1.5 hover:bg-white transition-all"
+          </div>
+        ) : images.length === 1 ? (
+          /* Single Image Hero */
+          <div
+            onClick={() => setActiveImageIdx(0)}
+            className="h-[360px] sm:h-[420px] rounded-3xl overflow-hidden relative cursor-pointer group bg-[#F7F7F7] border border-[#EBEBEB]"
           >
-            <Icon name="photo_camera" size={16} />
-            <span>Show all {images.length} photos</span>
-          </button>
-        </div>
+            <img
+              src={images[0].url}
+              alt={property.title}
+              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+            />
+          </div>
+        ) : images.length === 2 ? (
+          /* 2 Images Split */
+          <div className="grid grid-cols-2 gap-2.5 h-[360px] sm:h-[420px] rounded-3xl overflow-hidden relative border border-[#EBEBEB]">
+            {images.slice(0, 2).map((img, idx) => (
+              <div
+                key={img.url + idx}
+                onClick={() => setActiveImageIdx(idx)}
+                className="relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
+              >
+                <img
+                  src={img.url}
+                  alt={`Photo ${idx + 1}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => showToast(`Viewing all ${images.length} photos`, "info")}
+              className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#222222] shadow-md border border-[#EBEBEB] flex items-center gap-1.5 hover:bg-white transition-all"
+            >
+              <Icon name="photo_camera" size={15} />
+              <span>Show both photos</span>
+            </button>
+          </div>
+        ) : images.length === 3 ? (
+          /* 3 Images: 1 Large + 2 Stacked */
+          <div className="grid grid-cols-3 gap-2.5 h-[360px] sm:h-[420px] rounded-3xl overflow-hidden relative border border-[#EBEBEB]">
+            <div
+              onClick={() => setActiveImageIdx(0)}
+              className="col-span-2 relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
+            >
+              <img
+                src={images[0].url}
+                alt={property.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="grid grid-rows-2 gap-2.5">
+              {images.slice(1, 3).map((img, idx) => (
+                <div
+                  key={img.url + idx}
+                  onClick={() => setActiveImageIdx(idx + 1)}
+                  className="relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
+                >
+                  <img
+                    src={img.url}
+                    alt={`Photo ${idx + 2}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => showToast(`Viewing all ${images.length} photos`, "info")}
+              className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-bold text-[#222222] shadow-md border border-[#EBEBEB] flex items-center gap-1.5 hover:bg-white transition-all"
+            >
+              <Icon name="photo_camera" size={15} />
+              <span>Show all 3 photos</span>
+            </button>
+          </div>
+        ) : (
+          /* 4+ Images: Mosaic Grid */
+          <div className="grid grid-cols-4 grid-rows-2 gap-2.5 h-[360px] sm:h-[420px] rounded-3xl overflow-hidden relative border border-[#EBEBEB]">
+            <div
+              onClick={() => setActiveImageIdx(0)}
+              className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
+            >
+              <img
+                src={images[0].url}
+                alt={property.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            {images.slice(1, 5).map((img, idx) => (
+              <div
+                key={img.url + idx}
+                onClick={() => setActiveImageIdx(idx + 1)}
+                className="relative cursor-pointer overflow-hidden group bg-[#F7F7F7]"
+              >
+                <img
+                  src={img.url}
+                  alt={`Photo ${idx + 2}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            ))}
+            <button
+              onClick={() => showToast(`Viewing all ${images.length} photos`, "info")}
+              className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-bold text-[#222222] shadow-md border border-[#EBEBEB] flex items-center gap-1.5 hover:bg-white transition-all"
+            >
+              <Icon name="photo_camera" size={16} />
+              <span>Show all {images.length} photos</span>
+            </button>
+          </div>
+        )}
 
         {/* Content & Sticky Sidebar Grid */}
         <div className="grid grid-cols-12 gap-10 items-start">

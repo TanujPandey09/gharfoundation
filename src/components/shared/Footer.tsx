@@ -44,7 +44,7 @@ export const Footer: React.FC<{ forceShow?: boolean }> = ({ forceShow }) => {
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <a
-                href="https://wa.me/919999999999?text=Hello,%20I%20have%20an%20inquiry%20about%20Ghar%20Foundation."
+                href="https://wa.me/917906012345?text=Hello%20Ghar%20Foundation%20Support%2C%20I%20have%20an%20inquiry."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm active:scale-95"
@@ -90,8 +90,8 @@ export const Footer: React.FC<{ forceShow?: boolean }> = ({ forceShow }) => {
                 { label: "Family & Couple Friendly", href: "/search?gender=FAMILY" },
                 { label: "Student & Bachelor PGs", href: "/search?gender=BACHELOR" },
                 { label: "Pricing & Boost Plans", href: "/pricing" },
-                { label: "Police Verification Guide", href: "/safety-tips" },
-                { label: "Digital Rent Agreements", href: "/faq" },
+                { label: "UK Police Verification Dossier", href: "/police-verification" },
+                { label: "11-Month Digital Rent Lease", href: "/agreements" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link href={item.href} className="text-[#717171] hover:text-[#222222] hover:underline transition-colors">
@@ -113,6 +113,7 @@ export const Footer: React.FC<{ forceShow?: boolean }> = ({ forceShow }) => {
                 { label: "Safety & KYC Tips", href: "/safety-tips" },
                 { label: "Frequently Asked Questions", href: "/faq" },
                 { label: "Contact Us", href: "/contact" },
+                { label: "Refund & Cancellation Policy", href: "/refund-policy" },
                 { label: "Privacy Policy (DPDP)", href: "/privacy" },
                 { label: "Terms of Service", href: "/terms" },
               ].map((item) => (
@@ -133,6 +134,8 @@ export const Footer: React.FC<{ forceShow?: boolean }> = ({ forceShow }) => {
             <Link href="/privacy" className="hover:underline">Privacy</Link>
             <span>·</span>
             <Link href="/terms" className="hover:underline">Terms</Link>
+            <span>·</span>
+            <Link href="/refund-policy" className="hover:underline">Refund Policy</Link>
             <span>·</span>
             <Link href="/sitemap.xml" className="hover:underline">Sitemap</Link>
             <span>·</span>
